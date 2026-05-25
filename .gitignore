@@ -1,0 +1,18 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+
+# Generated brand scan output (ephemeral per run)
+brand_colors.json
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor configs
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local

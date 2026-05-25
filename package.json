@@ -1,0 +1,30 @@
+{
+  "name": "web-design-automation-factory",
+  "version": "1.0.0",
+  "description": "Production-grade dependency-free web design automation factory with headless CI/CD compilation pipeline.",
+  "main": "scripts/generate.js",
+  "scripts": {
+    "extract": "python scripts/extract_brand.py",
+    "generate": "node scripts/generate.js",
+    "build:css": "npx @tailwindcss/cli -i ./templates/master-landing-page/styles.css -o ./dist/styles.css --minify",
+    "build": "npm run generate && npm run build:css",
+    "pipeline": "npm run extract && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Techart484/Web-design.git"
+  },
+  "keywords": [
+    "web-design",
+    "automation",
+    "landing-page",
+    "tailwindcss",
+    "headless"
+  ],
+  "author": "Techart484",
+  "license": "MIT",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "^4.3.0"
+  }
+}

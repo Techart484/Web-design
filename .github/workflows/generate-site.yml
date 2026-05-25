@@ -1,0 +1,80 @@
+name: Web Design Automation Factory Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_url:
+        description: 'Client Website URL (Brand color extraction source)'
+        required: false
+        default: ''
+      industry:
+        description: 'Industry Type (Fallbacks: construction, medical, legal, fitness, default)'
+        required: false
+        default: 'default'
+      business_name:
+        description: 'Business Name (Polished generic fallbacks applied if blank)'
+        required: false
+        default: ''
+      contact_email:
+        description: 'Contact Email Address (Safe generic fallbacks applied if blank)'
+        required: false
+        default: ''
+      formspree_hash:
+        description: 'Formspree Hash (Defaults to safe mailto action if empty)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Codebase
+      uses: actions/checkout@v4
+
+    - name: Set up Python Environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Set up Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Node Dependencies
+      run: npm ci
+
+    - name: Execute Brand Color Scraper
+      run: |
+        python scripts/extract_brand.py "${{ github.event.inputs.client_url }}" "${{ github.event.inputs.industry }}"
+
+    - name: Execute Failsafe Code Compiler
+      run: |
+        node scripts/generate.js
+      env:
+        BUSINESS_NAME: "${{ github.event.inputs.business_name }}"
+        CONTACT_EMAIL: "${{ github.event.inputs.contact_email }}"
+        FORMSPREE_HASH: "${{ github.event.inputs.formspree_hash }}"
+
+    - name: Compile Production Tailwind Assets
+      run: |
+        npm run build:css
+
+    - name: Commit & Deploy Production Distribution
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        
+        # Verify if there are changes in the dist output
+        git add dist/
+        if git diff --cached --quiet; then
+          echo "No production asset updates recorded. Skipping commit."
+        else
+          git commit -m "Deploy hardened production build assets [skip ci]"
+          git push origin main
+        fi
