@@ -3,329 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURA // Web Design Automation Factory</title>
-  
-  <!-- SEO Metadata -->
-  <meta name="description" content="Premium, single-page, dependency-free visual web design creator and design system orchestrator.">
-  <meta name="keywords" content="web builder, design automation, low-code, web factory, premium ui">
-  
-  <!-- Core Builder Dashboard Styles -->
+  <title>AURA // Web Design Creator</title>
+  <meta name="description" content="A premium visual web design creator with a live iframe preview, industry color matrices, and production export tools.">
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- Production Assets: JSZip for Native Client-Side ZIP Packaging -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
+  <div class="page-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
 
-  <!-- Background Decorative Glowing Meshes -->
-  <div class="bg-glow-1"></div>
-  <div class="bg-glow-2"></div>
-
-  <!-- Header Dashboard Bar -->
-  <header>
-    <div class="logo" id="dashboard-logo">
-      <div class="logo-icon">▲</div>
-      <span class="logo-text">AURA.SYSTEM</span>
-      <span class="logo-badge">AUTOMATION ENGINE</span>
-    </div>
-    
-    <div class="header-controls">
-      <!-- Preset Templates Selector -->
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <label for="preset-selector" style="font-size: 11px; font-weight: 600; color: var(--color-text-muted);">PRESET CONFIG MATRIX:</label>
-        <select id="preset-selector" class="form-select" style="width: 200px; padding: 6px 10px; font-size: 12.5px;">
-          <option value="saas">SaaS Launch Engine (Default)</option>
-          <option value="creative">Creative Agency Portal</option>
-          <option value="construction">Industrial Roofing / Construction</option>
-          <option value="medical">Medical & Dental Clinic</option>
-          <option value="legal">Legal & Professional Practice</option>
-          <option value="fitness">Elite Fitness & Gym Club</option>
-        </select>
-      </div>
-
-      <button id="clear-canvas-btn" class="btn btn-secondary" title="Clear All Active Canvas Layout Sections">
-        <span>🗑️</span> Clear Layout
-      </button>
-      
-      <button id="toggle-code-drawer" class="btn btn-secondary" title="View Compiled HTML/CSS Code">
-        🖨️ View Compiled Code
-      </button>
-      
-      <button id="download-zip-btn" class="btn btn-primary" title="Export Production /dist ZIP Locally">
-        📦 Download ZIP
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Application Workspace -->
-  <main>
-    
-    <!-- Sidebar Control panel (Left) -->
-    <div class="sidebar" id="control-sidebar">
-      <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="design" id="tab-design-system">🎨 Design System</button>
-        <button class="tab-btn" data-tab="components" id="tab-components-library">🧩 Components</button>
-        <button class="tab-btn" data-tab="seo" id="tab-seo-metadata">📡 SEO & Uplink</button>
-      </div>
-
-      <div class="sidebar-content">
-        
-        <!-- Panel 1: Design System Controls -->
-        <div class="panel-section active" id="panel-design">
-          <div class="panel-title">
-            <span>⚙️</span> Brand Scan Vector
-          </div>
-          <div class="form-group">
-            <label for="client-url" class="form-label">CLIENT WEBSITE URL (BRAND HARVESTER)</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="client-url" class="form-input" placeholder="e.g. dentalclinic.com" style="flex: 1;">
-              <button id="brand-scan-btn" class="btn btn-accent" style="padding: 10px 14px;">Scan</button>
-            </div>
-            <span style="font-size: 10.5px; color: var(--color-text-muted); display: block; margin-top: 5px; line-height: 1.3;">
-              *Analyzes brand color profiles. Automatically falls back to high-fidelity industry matrices if blank.
-            </span>
-          </div>
-
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
-
-          <div class="panel-title">
-            <span>🎨</span> Color Styling Matrix
-          </div>
-          <div class="form-group">
-            <div class="color-inputs-grid">
-              <div>
-                <label class="form-label">PRIMARY BRAND</label>
-                <div class="color-picker-wrapper" id="color-primary-wrapper">
-                  <input type="color" class="color-picker" value="#8b5cf6">
-                  <span class="color-hex-text">#8b5cf6</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">SECONDARY BRAND</label>
-                <div class="color-picker-wrapper" id="color-secondary-wrapper">
-                  <input type="color" class="color-picker" value="#f43f5e">
-                  <span class="color-hex-text">#f43f5e</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">NEON ACCENT</label>
-                <div class="color-picker-wrapper" id="color-accent-wrapper">
-                  <input type="color" class="color-picker" value="#06b6d4">
-                  <span class="color-hex-text">#06b6d4</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">CANVAS BG</label>
-                <div class="color-picker-wrapper" id="color-bg-wrapper">
-                  <input type="color" class="color-picker" value="#06050b">
-                  <span class="color-hex-text">#06050b</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
-
-          <div class="panel-title">
-            <span>📏</span> Layout Parameters
-          </div>
-          <div class="form-group">
-            <label for="container-width" class="form-label">MAX CONTAINER WIDTH (PX)</label>
-            <input type="range" id="container-width" min="960" max="1440" step="20" class="form-input" style="padding: 0; cursor: pointer;">
-          </div>
-          <div class="form-group">
-            <label for="border-radius" class="form-label">BORDER RADIUS (PX)</label>
-            <input type="range" id="border-radius" min="0" max="24" step="2" class="form-input" style="padding: 0; cursor: pointer;">
-          </div>
-          <div class="form-group">
-            <label for="font-family" class="form-label">TYPOGRAPHY SYSTEM</label>
-            <select id="font-family" class="form-select">
-              <option value="Outfit">Outfit (Geometric & Modern)</option>
-              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Sleek & Tech)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Panel 2: Components Grid List -->
-        <div class="panel-section" id="panel-components">
-          <div class="panel-title">
-            <span>🧩</span> Navigation Registry
-          </div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Glassmorphic Navbar</span>
-                <span class="component-desc">Translucent sticky top-bar</span>
-              </div>
-              <button class="component-add-btn" data-component="navbar" title="Add Navbar to Layout">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Clean Footer</span>
-                <span class="component-desc">MIT copyright & link indices</span>
-              </div>
-              <button class="component-add-btn" data-component="footer" title="Add Footer to Layout">+</button>
-            </div>
-          </div>
-
-          <div style="margin: 20px 0;"></div>
-
-          <div class="panel-title">
-            <span>🖥️</span> Display Blocks
-          </div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Sleek Split Hero</span>
-                <span class="component-desc">Headline + gradient tag + visual code mockup</span>
-              </div>
-              <button class="component-add-btn" data-component="hero" title="Add Hero to Layout">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Neon Features Grid</span>
-                <span class="component-desc">3 Glowing cards with hover-scaling shapes</span>
-              </div>
-              <button class="component-add-btn" data-component="features" title="Add Features to Layout">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Metric Milestones</span>
-                <span class="component-desc">Performance uptime counters grid</span>
-              </div>
-              <button class="component-add-btn" data-component="stats" title="Add Metrics to Layout">+</button>
-            </div>
-          </div>
-
-          <div style="margin: 20px 0;"></div>
-
-          <div class="panel-title">
-            <span>📈</span> Conversion Modules
-          </div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Sleek Pricing Columns</span>
-                <span class="component-desc">Scaling plan values with highlight ribbons</span>
-              </div>
-              <button class="component-add-btn" data-component="pricing" title="Add Pricing to Layout">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Frictionless Contact Form</span>
-                <span class="component-desc">Split layout with Formspree handling</span>
-              </div>
-              <button class="component-add-btn" data-component="contact" title="Add Contact to Layout">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 3: SEO Configuration & Contact Uplink -->
-        <div class="panel-section" id="panel-seo">
-          <div class="panel-title">
-            <span>📡</span> Core SEO Configuration
-          </div>
-          <div class="form-group">
-            <label for="seo-title" class="form-label">DOCUMENT TITLE (&lt;title&gt;)</label>
-            <input type="text" id="seo-title" class="form-input" placeholder="Automated Production Page">
-          </div>
-          <div class="form-group">
-            <label for="seo-desc" class="form-label">META DESCRIPTION</label>
-            <input type="text" id="seo-desc" class="form-input" placeholder="Dynamic responsive layout system compiled in real-time.">
-          </div>
-          <div class="form-group">
-            <label for="seo-keys" class="form-label">META KEYWORDS</label>
-            <input type="text" id="seo-keys" class="form-input" placeholder="landing page, visual creator, system">
-          </div>
-          <div class="form-group">
-            <label for="seo-lang" class="form-label">DOCUMENT LANGUAGE</label>
-            <input type="text" id="seo-lang" class="form-input" placeholder="en" style="width: 80px;">
-          </div>
-
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
-
-          <div class="panel-title">
-            <span>🔑</span> Frictionless Form Integration
-          </div>
-          <div class="form-group">
-            <label for="contact-email" class="form-label">FORMSPREE TARGET EMAIL / HASH</label>
-            <input type="text" id="contact-email" class="form-input" placeholder="your-hash-or-email@domain.com">
-            <span style="font-size: 10.5px; color: var(--color-text-muted); display: block; margin-top: 6px; line-height: 1.35;">
-              *All contact forms will automatically target this credential (https://formspree.io/f/{{CONTACT_EMAIL}}).
-            </span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Central Preview Canvas Workspace -->
-    <div class="canvas-container" id="workspace-canvas">
-      <!-- Toolbar Controls -->
-      <div class="canvas-toolbar">
-        <div style="font-size: 11px; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px; text-transform: uppercase;">
-          Live Sandbox Viewport
-        </div>
-        <div class="device-selectors">
-          <button class="device-btn active" data-device="desktop" title="Desktop Viewport (100% Width)">🖥️</button>
-          <button class="device-btn" data-device="tablet" title="Tablet Viewport (768px Width)">📟</button>
-          <button class="device-btn" data-device="mobile" title="Mobile Viewport (390px Width)">📱</button>
-        </div>
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark">▲</div>
         <div>
-          <!-- Empty spacer -->
+          <div class="brand-name">AURA.SYSTEM</div>
+          <div class="brand-subtitle">Web Design Creator</div>
         </div>
       </div>
-
-      <!-- Iframe Host Viewport -->
-      <div class="canvas-viewport">
-        <!-- Visual Layout Empty State -->
-        <div class="empty-canvas" id="canvas-empty-state">
-          <div class="empty-canvas-icon">▲</div>
-          <div class="empty-canvas-title">System Canvas Empty</div>
-          <div class="empty-canvas-desc">Select an industry preset above or insert modular components from the left panels to initiate visual layout compilation.</div>
-        </div>
-        
-        <!-- Premium Isolated Iframe Sandbox -->
-        <div class="preview-wrapper desktop" id="viewport-wrapper">
-          <iframe id="preview-iframe" title="Dynamic Client Canvas Viewport"></iframe>
-        </div>
+      <div class="topbar-actions">
+        <button class="chip-button" id="clear-canvas-btn" type="button">Clear Layout</button>
+        <button class="chip-button" id="toggle-code-drawer" type="button">View Code</button>
+        <button class="primary-button" id="download-zip-btn" type="button">Download Production ZIP</button>
       </div>
+    </header>
 
-      <!-- Collapsible Code Drawer Widget -->
-      <div class="code-viewer-drawer" id="code-drawer">
-        <div class="code-viewer-header">
-          <div class="code-tabs">
-            <button class="code-tab active" data-format="html">dist/index.html</button>
-            <button class="code-tab" data-format="css">dist/css/styles.css</button>
+    <main class="builder">
+      <aside class="panel panel-left">
+        <section class="panel-section">
+          <div class="section-heading">Control Core</div>
+          <label class="field">
+            <span>Business Name</span>
+            <input id="business-name" type="text" placeholder="Northstar Studio" />
+          </label>
+          <label class="field">
+            <span>Contact Email</span>
+            <input id="contact-email" type="email" placeholder="hello@northstar.studio" />
+          </label>
+          <label class="field">
+            <span>Industry Matrix</span>
+            <select id="industry-select">
+              <option value="saas">SaaS / Product</option>
+              <option value="creative">Creative Agency</option>
+              <option value="construction">Construction</option>
+              <option value="medical">Medical / Dental</option>
+              <option value="legal">Legal Practice</option>
+              <option value="fitness">Fitness / Performance</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-heading">Component Library</div>
+          <div id="component-library" class="component-library"></div>
+        </section>
+      </aside>
+
+      <section class="stage">
+        <div class="viewport-shell">
+          <div class="viewport-toolbar">
+            <div class="viewport-label">Live Site Viewer</div>
+            <div class="device-switcher">
+              <button class="device-btn active" data-device="desktop" type="button">Desktop</button>
+              <button class="device-btn" data-device="tablet" type="button">Tablet</button>
+              <button class="device-btn" data-device="mobile" type="button">Mobile</button>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" id="copy-code-btn" style="padding: 4px 12px; font-size: 11.5px;">
-              📋 Copy Code Packet
-            </button>
+          <div class="viewport-frame desktop" id="viewport-frame">
+            <div class="empty-state" id="empty-state">
+              <div class="empty-state-title">Build a live site preview</div>
+              <div class="empty-state-copy">Add sections from the library and the iframe will render a fully styled client site here.</div>
+            </div>
+            <iframe id="preview-iframe" title="Live visual preview"></iframe>
           </div>
         </div>
-        <div class="code-body">
-          <pre id="code-viewer-html" class="code-container"></pre>
-          <pre id="code-viewer-css" class="code-container" style="display: none;"></pre>
+      </section>
+
+      <aside class="panel panel-right">
+        <section class="panel-section">
+          <div class="section-heading">Active Layout</div>
+          <div id="layout-list" class="layout-list"></div>
+        </section>
+      </aside>
+    </main>
+
+    <section class="code-drawer" id="code-drawer" aria-hidden="true">
+      <div class="code-header">
+        <div class="code-tabs">
+          <button class="code-tab active" data-target="html" type="button">HTML</button>
+          <button class="code-tab" data-target="css" type="button">CSS</button>
         </div>
+        <button class="copy-button" id="copy-code-btn" type="button">Copy to Clipboard</button>
       </div>
+      <pre class="code-view active" id="code-html"></pre>
+      <pre class="code-view" id="code-css"></pre>
+    </section>
+  </div>
 
-    </div>
-
-    <!-- Active Reordering Layout Drawer Panel (Right) -->
-    <div class="layout-panel" id="layout-matrix-sidebar">
-      <div class="layout-header">Active Canvas Matrix</div>
-      <div class="layout-list" id="layout-items-list">
-        <!-- Reordering Nodes dynamically loaded from state -->
-      </div>
-    </div>
-
-  </main>
-
-  <!-- JavaScript Libraries & Orchestrators Load Chain -->
-  <script src="js/components.js"></script>
-  <script src="js/templates.js"></script>
-  <script src="js/exporter.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,592 +1,477 @@
-// Web Design Automation Factory - Unified State & UI Orchestrator
-// Coordinates settings, visual canvas updates, isolated iframe, and code compilations.
-
-// Global application state
-const AppState = {
-  // SEO & General Metadata
-  seoTitle: 'Aura Design Automation Factory',
-  seoDescription: 'High-fidelity, responsive single-page visual layout builder and design system compiler.',
-  seoKeywords: 'web design, automation, low-code, design system, html export',
-  seoLanguage: 'en',
-  contactEmail: 'contact@domain.com',
-
-  // Client URL & Brand Scanner parameters
-  clientUrl: '',
-  selectedPresetId: 'saas',
-
-  // Global Design Tokens
-  themePrimary: '#8b5cf6',
-  themeSecondary: '#f43f5e',
-  themeAccent: '#06b6d4',
-  themeBg: '#06050b',
-  containerWidth: 1200,
-  borderRadius: 12,
-  fontFamily: 'Outfit',
-
-  // Active layout structure matrix (tracks instances of components in the canvas)
-  // Format: { id: string, componentId: string }
-  activeSections: []
+const INDUSTRIES = {
+  saas: { primary: '#6c5cff', secondary: '#26d0ff', accent: '#ff5f8f', background: '#080710' },
+  creative: { primary: '#ff4f7b', secondary: '#8f6bff', accent: '#f7b84b', background: '#090712' },
+  construction: { primary: '#2341b2', secondary: '#1f2937', accent: '#ff8a2a', background: '#060912' },
+  medical: { primary: '#0ea5a3', secondary: '#0f172a', accent: '#5ed3ff', background: '#071014' },
+  legal: { primary: '#24324b', secondary: '#475569', accent: '#e0a23d', background: '#080b14' },
+  fitness: { primary: '#141414', secondary: '#27211d', accent: '#ef4444', background: '#090909' }
 };
 
-// Fallback matrices for industries
-const IndustryFallbacks = {
-  construction: {
-    primary: '#1E3A8A', // Deep Blue
-    accent: '#F97316',  // Safety Orange
-    secondary: '#1e293b',
-    bg: '#030712'
-  },
-  medical: {
-    primary: '#0D9488', // Teal
-    accent: '#38BDF8',  // Sky Blue
-    secondary: '#0f172a',
-    bg: '#040b0e'
-  },
-  legal: {
-    primary: '#1E293B', // Slate
-    accent: '#D97706',  // Amber
-    secondary: '#475569',
-    bg: '#070a13'
-  },
-  fitness: {
-    primary: '#0f0f10', // Charcoal Dark
-    accent: '#DC2626',  // Aggressive Red
-    secondary: '#1c1917',
-    bg: '#080808'
-  }
+const COMPONENTS = {
+  navbar: { name: 'Glass Navbar', desc: 'Sticky navigation with premium call-to-action.' },
+  hero: { name: 'Split Hero', desc: 'Bold intro area with live metrics and actions.' },
+  features: { name: 'Feature Grid', desc: 'Card-driven benefit matrix with glow states.' },
+  stats: { name: 'Metrics Strip', desc: 'Fast-scanning proof and credibility bar.' },
+  pricing: { name: 'Pricing Stack', desc: 'Conversion-focused plan cards.' },
+  contact: { name: 'Contact Block', desc: 'Form and trust details with email token binding.' },
+  footer: { name: 'Footer', desc: 'Multi-column closing area with link groups.' }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  initDashboardUI();
-  loadTemplatePreset('saas');
-});
+const SECTION_ORDER = ['navbar', 'hero', 'features', 'stats', 'pricing', 'contact', 'footer'];
 
-// Initialize dashboard event anchors
-function initDashboardUI() {
-  // 1. Sidebar Tab Controls
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      const targetPanel = btn.getAttribute('data-tab');
-      document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
-      document.getElementById(`panel-${targetPanel}`).classList.add('active');
-    });
-  });
+const state = {
+  businessName: 'Northstar Studio',
+  contactEmail: 'hello@northstar.studio',
+  industry: 'saas',
+  activeSections: ['navbar', 'hero', 'features', 'stats', 'pricing', 'contact', 'footer'],
+  device: 'desktop',
+  codeTab: 'html'
+};
 
-  // 2. Real-Time Inputs Sync
-  setupStateInputListener('seo-title', 'seoTitle');
-  setupStateInputListener('seo-desc', 'seoDescription');
-  setupStateInputListener('seo-keys', 'seoKeywords');
-  setupStateInputListener('seo-lang', 'seoLanguage');
-  setupStateInputListener('contact-email', 'contactEmail');
-  setupStateInputListener('container-width', 'containerWidth', parseInt, true);
-  setupStateInputListener('border-radius', 'borderRadius', parseInt, true);
+const componentMarkup = {
+  navbar: () => `
+<nav class="nav-shell">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-mark"></div>
+      <div>
+        <div class="nav-title">{{BUSINESS_NAME}}</div>
+        <div class="nav-sub">Premium digital systems</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#stats">Results</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a href="#contact" class="nav-button">Start Project</a>
+  </div>
+</nav>`,
+  hero: () => `
+<section class="hero-shell" id="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Live Builder Preview</div>
+      <h1 class="hero-heading">Design and launch a premium web presence for <span>{{BUSINESS_NAME}}</span>.</h1>
+      <p class="hero-copy">Update the contact email, swap the industry palette, and rearrange sections without reloading the canvas.</p>
+      <div class="hero-actions">
+        <a class="hero-primary" href="#contact">Book a call</a>
+        <a class="hero-secondary" href="#features">Explore modules</a>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="mini-window">
+        <div class="mini-bar"><span></span><span></span><span></span></div>
+        <div class="mini-content">
+          <div class="mini-row"></div>
+          <div class="mini-row short"></div>
+          <div class="mini-row accent"></div>
+          <div class="mini-grid">
+            <div></div><div></div><div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>`,
+  features: () => `
+<section class="section-block" id="features">
+  <div class="section-head">
+    <div class="eyebrow">Capabilities</div>
+    <h2>Built for high-trust client presentations.</h2>
+  </div>
+  <div class="feature-grid">
+    <article class="feature-card"><h3>Live tokens</h3><p>Business name and contact variables update directly inside the iframe context.</p></article>
+    <article class="feature-card accent"><h3>Color matrices</h3><p>Industry switching injects a full palette into the preview root style variables.</p></article>
+    <article class="feature-card"><h3>Section order</h3><p>Add, remove, and reorder layout blocks with an immediate visual refresh.</p></article>
+  </div>
+</section>`,
+  stats: () => `
+<section class="section-block stats-block" id="stats">
+  <div class="stats-grid">
+    <div class="stat-card"><strong>99.9%</strong><span>layout clarity</span></div>
+    <div class="stat-card"><strong>0</strong><span>raw text dumps</span></div>
+    <div class="stat-card"><strong>Live</strong><span>state driven</span></div>
+    <div class="stat-card"><strong>ZIP</strong><span>production export</span></div>
+  </div>
+</section>`,
+  pricing: () => `
+<section class="section-block" id="pricing">
+  <div class="section-head">
+    <div class="eyebrow">Packages</div>
+    <h2>Simple plans that feel premium.</h2>
+  </div>
+  <div class="pricing-grid">
+    <article class="price-card"><h3>Starter</h3><div class="price">$0</div><p>Great for quick concepts.</p></article>
+    <article class="price-card popular"><h3>Production</h3><div class="price">$49</div><p>Best for client-ready builds.</p></article>
+  </div>
+</section>`,
+  contact: () => `
+<section class="section-block contact-shell" id="contact">
+  <div class="contact-copy">
+    <div class="eyebrow">Contact</div>
+    <h2>Send the brief to {{CONTACT_EMAIL}}.</h2>
+    <p>Forms in the preview are bound to the current email token and styled to match the selected matrix.</p>
+  </div>
+  <form class="contact-card">
+    <input type="text" placeholder="Your name" />
+    <input type="email" placeholder="Email address" />
+    <textarea rows="4" placeholder="Project details"></textarea>
+    <button type="button">Send Message</button>
+  </form>
+</section>`,
+  footer: () => `
+<footer class="footer-shell">
+  <div class="footer-brand">{{BUSINESS_NAME}}</div>
+  <div class="footer-note">Built for premium presentation and production export.</div>
+</footer>`
+};
 
-  // Custom visual color pickers & manual hex syncer
-  setupColorPicker('color-primary', 'themePrimary');
-  setupColorPicker('color-secondary', 'themeSecondary');
-  setupColorPicker('color-accent', 'themeAccent');
-  setupColorPicker('color-bg', 'themeBg');
-
-  // Font Family sync
-  const fontSelect = document.getElementById('font-family');
-  if (fontSelect) {
-    fontSelect.addEventListener('change', (e) => {
-      AppState.fontFamily = e.target.value;
-      updateIframeStyles();
-      updateCodeViewers();
-    });
-  }
-
-  // 3. Preset Templates Dropdown Selector
-  const presetSelect = document.getElementById('preset-selector');
-  if (presetSelect) {
-    presetSelect.addEventListener('change', (e) => {
-      loadTemplatePreset(e.target.value);
-    });
-  }
-
-  // 4. Double-Sided Input Token Brand Color Scanner trigger
-  const scanBtn = document.getElementById('brand-scan-btn');
-  const urlInput = document.getElementById('client-url');
-  if (scanBtn && urlInput) {
-    scanBtn.addEventListener('click', () => {
-      const urlVal = urlInput.value.trim();
-      if (!urlVal) {
-        alert('Please input a valid client URL to execute the brand scanning matrix.');
-        return;
-      }
-      simulateBrandScan(urlVal);
-    });
-  }
-
-  // 5. Section Adder Triggers (from library grid)
-  const addButtons = document.querySelectorAll('.component-add-btn');
-  addButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const compId = btn.getAttribute('data-component');
-      addCanvasSection(compId);
-    });
-  });
-
-  const cardClickables = document.querySelectorAll('.component-card');
-  cardClickables.forEach(card => {
-    card.addEventListener('click', () => {
-      const btn = card.querySelector('.component-add-btn');
-      if (btn) {
-        const compId = btn.getAttribute('data-component');
-        addCanvasSection(compId);
-      }
-    });
-  });
-
-  // 6. Device Viewport Toggles
-  const deviceBtns = document.querySelectorAll('.device-btn');
-  const viewportWrapper = document.getElementById('viewport-wrapper');
-  deviceBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      deviceBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      const device = btn.getAttribute('data-device');
-      viewportWrapper.className = `preview-wrapper ${device}`;
-    });
-  });
-
-  // 7. Global Header Action Controls
-  const clearBtn = document.getElementById('clear-canvas-btn');
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to clear all layout sections from the canvas?')) {
-        AppState.activeSections = [];
-        renderCanvas();
-        updateLayoutList();
-      }
-    });
-  }
-
-  // 8. ZIP Download Trigger
-  const downloadBtn = document.getElementById('download-zip-btn');
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => {
-      Exporter.downloadProductionZip(AppState);
-    });
-  }
-
-  // 9. Code Viewer Drawer Toggler
-  const toggleCodeBtn = document.getElementById('toggle-code-drawer');
-  const codeDrawer = document.getElementById('code-drawer');
-  if (toggleCodeBtn && codeDrawer) {
-    toggleCodeBtn.addEventListener('click', () => {
-      const isOpen = codeDrawer.classList.toggle('open');
-      toggleCodeBtn.textContent = isOpen ? '✕ Collapse Workspace Code' : '🖨️ View Compiled Code';
-      if (isOpen) {
-        updateCodeViewers();
-      }
-    });
-  }
-
-  // Code Tab switching
-  const codeTabs = document.querySelectorAll('.code-tab');
-  codeTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      codeTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      
-      const format = tab.getAttribute('data-format');
-      document.querySelectorAll('.code-container').forEach(c => c.style.display = 'none');
-      document.getElementById(`code-viewer-${format}`).style.display = 'block';
-    });
-  });
-
-  // Copy code utility
-  const copyBtn = document.getElementById('copy-code-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      const activeTab = document.querySelector('.code-tab.active');
-      const format = activeTab ? activeTab.getAttribute('data-format') : 'html';
-      const codeNode = document.getElementById(`code-viewer-${format}`);
-      
-      if (codeNode) {
-        navigator.clipboard.writeText(codeNode.textContent)
-          .then(() => {
-            const origText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '✓ Copied Packet!';
-            setTimeout(() => copyBtn.innerHTML = origText, 2000);
-          })
-          .catch(err => alert('Failed to execute clipboard copy sequence: ' + err));
-      }
-    });
-  }
+function hexToRgba(hex, alpha) {
+  const value = hex.replace('#', '');
+  const expanded = value.length === 3 ? value.split('').map(char => char + char).join('') : value;
+  const int = Number.parseInt(expanded, 16);
+  return `rgba(${(int >> 16) & 255}, ${(int >> 8) & 255}, ${int & 255}, ${alpha})`;
 }
 
-// Helpers: Data Sync Connectors
-function setupStateInputListener(elemId, stateKey, parser = null, isStyleTrigger = false) {
-  const elem = document.getElementById(elemId);
-  if (!elem) return;
+function getTheme() {
+  return INDUSTRIES[state.industry];
+}
 
-  // Sync initial state value to element
-  if (elem.type === 'number') {
-    elem.value = AppState[stateKey];
-  } else {
-    elem.value = AppState[stateKey];
-  }
+function buildPreviewHtml() {
+  const theme = getTheme();
+  const sections = state.activeSections.map(key => componentMarkup[key]().trim()).join('\n');
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>${buildPreviewCss(theme)}</style>
+</head>
+<body>
+  ${sections}
+</body>
+</html>`;
+}
 
-  elem.addEventListener('input', (e) => {
-    let val = e.target.value;
-    if (parser) val = parser(val);
-    AppState[stateKey] = val;
-
-    if (isStyleTrigger) {
-      updateIframeStyles();
+function buildPreviewCss(theme) {
+  return `
+    :root {
+      --primary: ${theme.primary};
+      --secondary: ${theme.secondary};
+      --accent: ${theme.accent};
+      --background: ${theme.background};
+      --primary-glow: ${hexToRgba(theme.primary, 0.3)};
+      --accent-glow: ${hexToRgba(theme.accent, 0.2)};
+      --radius: 22px;
+      --font: 'Inter', sans-serif;
     }
-    updateCodeViewers();
-  });
-}
-
-function setupColorPicker(colorId, stateKey) {
-  const wrapper = document.getElementById(`${colorId}-wrapper`);
-  if (!wrapper) return;
-
-  const picker = wrapper.querySelector('.color-picker');
-  const hexText = wrapper.querySelector('.color-hex-text');
-  
-  if (picker && hexText) {
-    // Sync initial state values
-    picker.value = AppState[stateKey];
-    hexText.textContent = AppState[stateKey];
-
-    picker.addEventListener('input', (e) => {
-      const val = e.target.value;
-      AppState[stateKey] = val;
-      hexText.textContent = val;
-      updateIframeStyles();
-      updateCodeViewers();
-    });
-
-    hexText.addEventListener('click', () => {
-      const newHex = prompt(`Modify HEX for ${stateKey.replace('theme', '')}:`, AppState[stateKey]);
-      if (newHex && /^#[A-Fa-f0-9]{6}$/.test(newHex)) {
-        AppState[stateKey] = newHex;
-        picker.value = newHex;
-        hexText.textContent = newHex;
-        updateIframeStyles();
-        updateCodeViewers();
-      }
-    });
-  }
-}
-
-// Loads structural presets and theme configurations into memory
-function loadTemplatePreset(presetId) {
-  const template = WebTemplates[presetId];
-  if (!template) return;
-
-  AppState.selectedPresetId = presetId;
-  
-  // Load standard themes or fallback to specific industry matrix values if relevant
-  if (template.industry && IndustryFallbacks[template.industry]) {
-    const fallback = IndustryFallbacks[template.industry];
-    AppState.themePrimary = fallback.primary;
-    AppState.themeAccent = fallback.accent;
-    AppState.themeSecondary = fallback.secondary;
-    AppState.themeBg = fallback.bg;
-  } else {
-    AppState.themePrimary = template.theme.primary;
-    AppState.themeAccent = template.theme.accent;
-    AppState.themeSecondary = template.theme.secondary;
-    AppState.themeBg = template.theme.bg;
-  }
-
-  AppState.containerWidth = parseInt(template.theme.container);
-  AppState.borderRadius = parseInt(template.theme.radius);
-  AppState.fontFamily = template.theme.font;
-
-  // Re-sync visual UI inputs
-  updateFormControlsFromState();
-
-  // Load layout matrix arrangement
-  AppState.activeSections = template.sections.map(sectionId => ({
-    id: generateUUID(),
-    componentId: sectionId
-  }));
-
-  renderCanvas();
-  updateLayoutList();
-}
-
-function updateFormControlsFromState() {
-  const setInputValue = (id, val) => {
-    const elem = document.getElementById(id);
-    if (elem) elem.value = val;
-  };
-
-  const syncColor = (colorId, val) => {
-    const wrapper = document.getElementById(`${colorId}-wrapper`);
-    if (wrapper) {
-      const picker = wrapper.querySelector('.color-picker');
-      const hexText = wrapper.querySelector('.color-hex-text');
-      if (picker) picker.value = val;
-      if (hexText) hexText.textContent = val;
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: #f7f9ff;
+      background:
+        radial-gradient(circle at 20% 20%, ${hexToRgba(theme.primary, 0.14)}, transparent 35%),
+        radial-gradient(circle at 85% 15%, ${hexToRgba(theme.accent, 0.12)}, transparent 28%),
+        linear-gradient(180deg, #0a0b13, var(--background));
+      min-height: 100vh;
     }
-  };
-
-  setInputValue('container-width', AppState.containerWidth);
-  setInputValue('border-radius', AppState.borderRadius);
-  setInputValue('font-family', AppState.fontFamily);
-  
-  syncColor('color-primary', AppState.themePrimary);
-  syncColor('color-secondary', AppState.themeSecondary);
-  syncColor('color-accent', AppState.themeAccent);
-  syncColor('color-bg', AppState.themeBg);
-}
-
-// Brand scanning simulator using client URLs
-function simulateBrandScan(url) {
-  const scanBtn = document.getElementById('brand-scan-btn');
-  const origText = scanBtn.textContent;
-  scanBtn.disabled = true;
-  scanBtn.textContent = '⚡ Parsing Brand Vectors...';
-
-  // Extract simulated hostname to use for mock algorithm hashes
-  let domain = 'factory';
-  try {
-    const parsed = new URL(url.includes('://') ? url : 'http://' + url);
-    domain = parsed.hostname.replace('www.', '');
-  } catch (e) {}
-
-  setTimeout(() => {
-    // Determine a fallback industry matching domain patterns, or create high-quality hashes
-    let generatedTheme;
-
-    if (domain.includes('clinic') || domain.includes('dental') || domain.includes('health') || domain.includes('med')) {
-      generatedTheme = IndustryFallbacks.medical;
-      AppState.selectedPresetId = 'medical';
-      document.getElementById('preset-selector').value = 'medical';
-    } else if (domain.includes('construct') || domain.includes('roof') || domain.includes('build')) {
-      generatedTheme = IndustryFallbacks.construction;
-      AppState.selectedPresetId = 'construction';
-      document.getElementById('preset-selector').value = 'construction';
-    } else if (domain.includes('law') || domain.includes('legal') || domain.includes('partner') || domain.includes('tax')) {
-      generatedTheme = IndustryFallbacks.legal;
-      AppState.selectedPresetId = 'legal';
-      document.getElementById('preset-selector').value = 'legal';
-    } else if (domain.includes('fit') || domain.includes('gym') || domain.includes('crossfit') || domain.includes('sport')) {
-      generatedTheme = IndustryFallbacks.fitness;
-      AppState.selectedPresetId = 'fitness';
-      document.getElementById('preset-selector').value = 'fitness';
-    } else {
-      // Standard SaaS default styling mapping
-      generatedTheme = {
-        primary: '#7c3aed', // Classic Violet
-        secondary: '#db2777', // Magenta
-        accent: '#0284c7', // Sky Accent
-        bg: '#0b0f19'
-      };
-      AppState.selectedPresetId = 'saas';
-      document.getElementById('preset-selector').value = 'saas';
+    a { color: inherit; text-decoration: none; }
+    .nav-shell, .section-block, .footer-shell {
+      width: min(1120px, calc(100% - 40px));
+      margin: 20px auto;
     }
-
-    AppState.themePrimary = generatedTheme.primary;
-    AppState.themeAccent = generatedTheme.accent;
-    AppState.themeSecondary = generatedTheme.secondary;
-    AppState.themeBg = generatedTheme.bg;
-
-    updateFormControlsFromState();
-    updateIframeStyles();
-    updateCodeViewers();
-
-    scanBtn.disabled = false;
-    scanBtn.textContent = '✓ Scan Finished!';
-    setTimeout(() => scanBtn.textContent = origText, 2500);
-
-    alert(`Successfully completed client Brand Scan for "${domain}"!\nDominant colors extracted. Applied presets corresponding to category.`);
-  }, 1800);
+    .nav-shell {
+      position: sticky; top: 18px; z-index: 10;
+      backdrop-filter: blur(18px);
+      background: rgba(10, 12, 20, 0.64);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 22px; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-mark { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 24px var(--primary-glow); }
+    .nav-title { font-weight: 800; letter-spacing: .04em; }
+    .nav-sub, .eyebrow, .hero-copy, .feature-card p, .stat-card span, .footer-note, .contact-copy p { color: rgba(235,240,255,.72); }
+    .nav-links { display: flex; gap: 18px; font-size: 14px; }
+    .nav-button, .hero-primary, .contact-card button {
+      padding: 12px 18px; border-radius: 999px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white; font-weight: 700; box-shadow: 0 12px 30px ${hexToRgba(theme.primary, 0.26)};
+    }
+    .hero-shell { padding: 64px 0 20px; }
+    .hero-grid { width: min(1120px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: 1.2fr .8fr; gap: 30px; align-items: center; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
+    .hero-heading { font-size: clamp(40px, 6vw, 72px); line-height: .94; margin: 0 0 18px; letter-spacing: -.05em; }
+    .hero-heading span { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; color: transparent; }
+    .hero-copy { font-size: 18px; line-height: 1.7; max-width: 58ch; }
+    .hero-actions { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-secondary { padding: 12px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
+    .hero-panel, .feature-card, .price-card, .contact-card, .stat-card {
+      background: rgba(10, 12, 20, 0.72); border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius);
+      backdrop-filter: blur(18px);
+    }
+    .mini-window { padding: 14px; }
+    .mini-bar { display:flex; gap:8px; margin-bottom: 14px; }
+    .mini-bar span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.2); }
+    .mini-content { display:grid; gap: 12px; }
+    .mini-row { height: 16px; border-radius: 999px; background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); }
+    .mini-row.short { width: 68%; }
+    .mini-row.accent { width: 82%; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+    .mini-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .mini-grid div { aspect-ratio: 1; border-radius: 18px; background: ${hexToRgba(theme.accent, 0.12)}; border: 1px solid rgba(255,255,255,.08); }
+    .section-head { margin-bottom: 18px; }
+    .section-head h2, .contact-copy h2 { font-size: clamp(28px, 3vw, 42px); margin: 0; letter-spacing: -.04em; }
+    .feature-grid, .pricing-grid, .stats-grid { display:grid; gap: 16px; }
+    .feature-grid { grid-template-columns: repeat(3, 1fr); }
+    .feature-card, .price-card { padding: 24px; }
+    .feature-card.accent { border-color: ${hexToRgba(theme.accent, .35)}; box-shadow: 0 0 0 1px ${hexToRgba(theme.accent, .1)} inset; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .stat-card { padding: 24px; text-align: center; }
+    .stat-card strong { display:block; font-size: 34px; margin-bottom: 6px; }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .price-card.popular { border-color: ${hexToRgba(theme.primary, .4)}; }
+    .price { font-size: 40px; font-weight: 800; margin: 18px 0; }
+    .contact-shell { display:grid; grid-template-columns: .9fr 1.1fr; gap: 22px; align-items: center; }
+    .contact-card { display:grid; gap: 12px; padding: 22px; }
+    .contact-card input, .contact-card textarea {
+      width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); padding: 14px 16px;
+      background: rgba(255,255,255,.03); color: white; font: inherit;
+    }
+    .footer-shell { display:flex; justify-content: space-between; gap: 16px; align-items:center; padding: 20px 0 40px; }
+    @media (max-width: 900px) {
+      .nav-inner, .hero-grid, .contact-shell, .footer-shell, .feature-grid, .pricing-grid, .stats-grid { grid-template-columns: 1fr; flex-direction: column; }
+      .nav-links { display:none; }
+    }
+  `;
 }
 
-// Visual layout matrix builder controls
-function addCanvasSection(compId) {
-  AppState.activeSections.push({
-    id: generateUUID(),
-    componentId: compId
-  });
-  renderCanvas();
-  updateLayoutList();
+function generatePreviewMarkup() {
+  let html = buildPreviewHtml();
+  html = html.replaceAll('{{BUSINESS_NAME}}', escapeHtml(state.businessName));
+  html = html.replaceAll('{{CONTACT_EMAIL}}', escapeHtml(state.contactEmail));
+  return html;
 }
 
-function removeCanvasSection(id) {
-  AppState.activeSections = AppState.activeSections.filter(s => s.id !== id);
-  renderCanvas();
-  updateLayoutList();
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
 
-function moveSection(id, direction) {
-  const index = AppState.activeSections.findIndex(s => s.id === id);
-  if (index === -1) return;
-
-  const targetIndex = index + direction;
-  if (targetIndex < 0 || targetIndex >= AppState.activeSections.length) return;
-
-  // Swap locations in the tracking matrix
-  const temp = AppState.activeSections[index];
-  AppState.activeSections[index] = AppState.activeSections[targetIndex];
-  AppState.activeSections[targetIndex] = temp;
-
-  renderCanvas();
-  updateLayoutList();
-}
-
-function cloneSection(id) {
-  const index = AppState.activeSections.findIndex(s => s.id === id);
-  if (index === -1) return;
-
-  const clone = {
-    id: generateUUID(),
-    componentId: AppState.activeSections[index].componentId
-  };
-
-  AppState.activeSections.splice(index + 1, 0, clone);
-  renderCanvas();
-  updateLayoutList();
-}
-
-// --------------------------------------------------------------------------
-// Visual Canvas Render Execution Loop (Dynamic Iframe injection)
-// --------------------------------------------------------------------------
-function renderCanvas() {
+function renderPreview() {
   const iframe = document.getElementById('preview-iframe');
-  const emptyState = document.getElementById('canvas-empty-state');
-  
+  const emptyState = document.getElementById('empty-state');
   if (!iframe) return;
+  const hasSections = state.activeSections.length > 0;
+  emptyState.style.display = hasSections ? 'none' : 'grid';
+  iframe.style.display = hasSections ? 'block' : 'none';
+  if (!hasSections) return;
+  iframe.srcdoc = generatePreviewMarkup();
+  syncPreviewChrome();
+}
 
-  if (AppState.activeSections.length === 0) {
-    iframe.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'flex';
+function syncPreviewChrome() {
+  const frame = document.getElementById('viewport-frame');
+  const iframe = document.getElementById('preview-iframe');
+  const doc = iframe.contentDocument;
+  if (!doc || !doc.documentElement) return;
+  const theme = getTheme();
+  doc.documentElement.style.setProperty('--primary', theme.primary);
+  doc.documentElement.style.setProperty('--secondary', theme.secondary);
+  doc.documentElement.style.setProperty('--accent', theme.accent);
+  doc.documentElement.style.setProperty('--background', theme.background);
+  doc.documentElement.style.setProperty('--primary-glow', hexToRgba(theme.primary, 0.3));
+  doc.documentElement.style.setProperty('--accent-glow', hexToRgba(theme.accent, 0.2));
+  iframe.contentDocument.body.style.background = theme.background;
+  frame.classList.remove('desktop', 'tablet', 'mobile');
+  frame.classList.add(state.device);
+}
+
+function renderLibrary() {
+  const root = document.getElementById('component-library');
+  root.innerHTML = SECTION_ORDER.map(key => `
+    <div class="component-card">
+      <div>
+        <div class="component-title">${COMPONENTS[key].name}</div>
+        <div class="component-desc">${COMPONENTS[key].desc}</div>
+      </div>
+      <button class="component-add" data-add="${key}" type="button">+</button>
+    </div>
+  `).join('');
+  root.querySelectorAll('[data-add]').forEach(button => {
+    button.addEventListener('click', () => addSection(button.dataset.add));
+  });
+}
+
+function renderLayoutList() {
+  const root = document.getElementById('layout-list');
+  root.innerHTML = state.activeSections.map((key, index) => `
+    <div class="layout-item">
+      <div class="layout-item-top">
+        <div>
+          <div class="layout-name">${COMPONENTS[key].name}</div>
+          <div class="layout-meta">#${String(index + 1).padStart(2, '0')} · ${key}</div>
+        </div>
+      </div>
+      <div class="layout-controls">
+        <button type="button" data-move="-1" data-index="${index}" ${index === 0 ? 'disabled' : ''}>Up</button>
+        <button type="button" data-move="1" data-index="${index}" ${index === state.activeSections.length - 1 ? 'disabled' : ''}>Down</button>
+        <button type="button" data-clone="${index}">Clone</button>
+        <button type="button" data-remove="${index}">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  root.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', () => {
+    state.activeSections.splice(Number(btn.dataset.remove), 1);
+    refreshAll();
+  }));
+  root.querySelectorAll('[data-move]').forEach(btn => btn.addEventListener('click', () => {
+    moveSection(Number(btn.dataset.index), Number(btn.dataset.move));
+  }));
+  root.querySelectorAll('[data-clone]').forEach(btn => btn.addEventListener('click', () => {
+    const index = Number(btn.dataset.clone);
+    state.activeSections.splice(index + 1, 0, state.activeSections[index]);
+    refreshAll();
+  }));
+}
+
+function addSection(key) {
+  state.activeSections.push(key);
+  refreshAll();
+}
+
+function moveSection(index, delta) {
+  const target = index + delta;
+  if (target < 0 || target >= state.activeSections.length) return;
+  [state.activeSections[index], state.activeSections[target]] = [state.activeSections[target], state.activeSections[index]];
+  refreshAll();
+}
+
+function refreshCodeDrawer() {
+  const html = generatePreviewMarkup();
+  const css = buildPreviewCss(getTheme());
+  document.getElementById('code-html').textContent = html;
+  document.getElementById('code-css').textContent = css;
+}
+
+function refreshAll() {
+  syncInputs();
+  renderPreview();
+  renderLayoutList();
+  refreshCodeDrawer();
+}
+
+function syncInputs() {
+  document.getElementById('business-name').value = state.businessName;
+  document.getElementById('contact-email').value = state.contactEmail;
+  document.getElementById('industry-select').value = state.industry;
+}
+
+function bindControls() {
+  document.getElementById('business-name').addEventListener('input', e => {
+    state.businessName = e.target.value.trim() || 'Northstar Studio';
+    updatePreviewTokens();
+  });
+  document.getElementById('contact-email').addEventListener('input', e => {
+    state.contactEmail = e.target.value.trim() || 'hello@northstar.studio';
+    updatePreviewTokens();
+  });
+  document.getElementById('industry-select').addEventListener('change', e => {
+    state.industry = e.target.value;
+    updatePreviewTokens(true);
+  });
+
+  document.querySelectorAll('.device-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.device-btn').forEach(node => node.classList.remove('active'));
+      btn.classList.add('active');
+      state.device = btn.dataset.device;
+      syncPreviewChrome();
+    });
+  });
+
+  document.getElementById('clear-canvas-btn').addEventListener('click', () => {
+    state.activeSections = [];
+    refreshAll();
+  });
+
+  const drawer = document.getElementById('code-drawer');
+  document.getElementById('toggle-code-drawer').addEventListener('click', () => {
+    drawer.classList.toggle('open');
+    drawer.setAttribute('aria-hidden', String(!drawer.classList.contains('open')));
+    refreshCodeDrawer();
+  });
+
+  document.querySelectorAll('.code-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.code-tab').forEach(node => node.classList.remove('active'));
+      document.querySelectorAll('.code-view').forEach(node => node.classList.remove('active'));
+      tab.classList.add('active');
+      state.codeTab = tab.dataset.target;
+      document.getElementById(`code-${state.codeTab}`).classList.add('active');
+    });
+  });
+
+  document.getElementById('copy-code-btn').addEventListener('click', async () => {
+    const text = state.codeTab === 'css' ? buildPreviewCss(getTheme()) : generatePreviewMarkup();
+    await navigator.clipboard.writeText(text);
+  });
+
+  document.getElementById('download-zip-btn').addEventListener('click', downloadZip);
+}
+
+function updatePreviewTokens(rebuildMarkup = false) {
+  const iframe = document.getElementById('preview-iframe');
+  if (!iframe || !iframe.contentDocument) {
+    refreshAll();
     return;
   }
+  const doc = iframe.contentDocument;
+  const theme = getTheme();
+  doc.documentElement.style.setProperty('--primary', theme.primary);
+  doc.documentElement.style.setProperty('--secondary', theme.secondary);
+  doc.documentElement.style.setProperty('--accent', theme.accent);
+  doc.documentElement.style.setProperty('--background', theme.background);
+  doc.documentElement.style.setProperty('--primary-glow', hexToRgba(theme.primary, 0.3));
+  doc.documentElement.style.setProperty('--accent-glow', hexToRgba(theme.accent, 0.2));
+  if (doc.body) doc.body.style.background = theme.background;
 
-  iframe.style.display = 'block';
-  if (emptyState) emptyState.style.display = 'none';
-
-  // Package index.html content natively
-  const compiled = Exporter.compileWorkspace(AppState);
-
-  // To prevent the full page flickering that breaks high-fidelity customization flow:
-  // We can write the initial structure directly using document.write,
-  // but only when we change sections structure. If it is already loaded, 
-  // we do NOT reload the document, we just perform state style overrides!
-  const currentStructureSignature = AppState.activeSections.map(s => s.componentId).join(',');
-  const loadedSignature = iframe.getAttribute('data-structure-sig');
-
-  if (currentStructureSignature !== loadedSignature) {
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    iframeDoc.open();
-    iframeDoc.write(compiled.html);
-    iframeDoc.close();
-
-    // Inject temporary styles immediately
-    iframe.setAttribute('data-structure-sig', currentStructureSignature);
-    
-    // Wire up events inside the preview canvas if needed (scrolling behaviors)
-    iframe.onload = () => {
-      updateIframeStyles();
-    };
+  if (rebuildMarkup) {
+    iframe.srcdoc = generatePreviewMarkup();
+  } else {
+    const body = doc.body;
+    if (!body) return;
+    body.innerHTML = state.activeSections.map(key => componentMarkup[key]().trim()).join('\n')
+      .replaceAll('{{BUSINESS_NAME}}', escapeHtml(state.businessName))
+      .replaceAll('{{CONTACT_EMAIL}}', escapeHtml(state.contactEmail));
   }
-
-  // Update layout styles via the Bridge to avoid flashes
-  updateIframeStyles();
-  updateCodeViewers();
+  refreshCodeDrawer();
 }
 
-// Dynamic CSS Bridge directly modifying iframe root elements
-function updateIframeStyles() {
+async function downloadZip() {
+  const zip = new JSZip();
+  const html = generatePreviewMarkup();
+  const css = buildPreviewCss(getTheme());
+  zip.file('index.html', html);
+  zip.folder('css').file('styles.css', css);
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'aura-production.zip';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function init() {
+  renderLibrary();
+  bindControls();
+  syncInputs();
+  refreshAll();
   const iframe = document.getElementById('preview-iframe');
-  if (!iframe) return;
-
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-  if (!iframeDoc || !iframeDoc.documentElement) return;
-
-  const root = iframeDoc.documentElement;
-  
-  // Set properties on root element dynamically without any visual flicker
-  root.style.setProperty('--color-primary', AppState.themePrimary);
-  root.style.setProperty('--color-primary-glow', Exporter.hexToRgba(AppState.themePrimary, 0.25));
-  root.style.setProperty('--color-secondary', AppState.themeSecondary);
-  root.style.setProperty('--color-secondary-glow', Exporter.hexToRgba(AppState.themeSecondary, 0.25));
-  root.style.setProperty('--color-accent', AppState.themeAccent);
-  root.style.setProperty('--color-accent-glow', Exporter.hexToRgba(AppState.themeAccent, 0.25));
-  root.style.setProperty('--color-bg', AppState.themeBg);
-  root.style.setProperty('--container-width', AppState.containerWidth + 'px');
-  root.style.setProperty('--border-radius', AppState.borderRadius + 'px');
-  root.style.setProperty('--font-family', `'${AppState.fontFamily}', sans-serif`);
-  
-  // Force re-scoping and style repaint checks
-  const body = iframeDoc.body;
-  if (body) {
-    body.style.backgroundColor = AppState.themeBg;
-  }
+  iframe.addEventListener('load', syncPreviewChrome);
 }
 
-// Update layouts listing on the right panel
-function updateLayoutList() {
-  const container = document.getElementById('layout-items-list');
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  AppState.activeSections.forEach((section, index) => {
-    const comp = WebComponents[section.componentId];
-    if (!comp) return;
-
-    const isFirst = index === 0;
-    const isLast = index === AppState.activeSections.length - 1;
-
-    const item = document.createElement('div');
-    item.className = 'layout-item';
-    item.innerHTML = `
-      <div class="layout-item-details">
-        <span class="layout-item-title">${comp.name}</span>
-        <span class="layout-item-id">${section.id.substring(0, 8)} (${comp.category})</span>
-      </div>
-      <div class="layout-item-controls">
-        <button class="layout-control-btn" onclick="moveSection('${section.id}', -1)" ${isFirst ? 'disabled' : ''} title="Move Up">▲</button>
-        <button class="layout-control-btn" onclick="moveSection('${section.id}', 1)" ${isLast ? 'disabled' : ''} title="Move Down">▼</button>
-        <button class="layout-control-btn" onclick="cloneSection('${section.id}')" title="Clone Section">❐</button>
-        <button class="layout-control-btn delete" onclick="removeCanvasSection('${section.id}')" title="Delete Section">✕</button>
-      </div>
-    `;
-    container.appendChild(item);
-  });
-
-  // Make controller methods globally accessible for HTML button anchor actions
-  window.moveSection = moveSection;
-  window.cloneSection = cloneSection;
-  window.removeCanvasSection = removeCanvasSection;
-}
-
-// Update syntax elements in code drawers
-function updateCodeViewers() {
-  const codeDrawer = document.getElementById('code-drawer');
-  if (!codeDrawer || !codeDrawer.classList.contains('open')) return;
-
-  const { html, css } = Exporter.compileWorkspace(AppState);
-
-  const htmlNode = document.getElementById('code-viewer-html');
-  const cssNode = document.getElementById('code-viewer-css');
-
-  if (htmlNode) htmlNode.textContent = html;
-  if (cssNode) cssNode.textContent = css;
-}
-
-// Helper: UUID Generator for structural tracking
-function generateUUID() {
-  return 'sect-xxxx-4xxx-yxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
+document.addEventListener('DOMContentLoaded', init);
