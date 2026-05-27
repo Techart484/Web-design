@@ -31,6 +31,15 @@
     <main class="builder">
       <aside class="panel panel-left">
         <section class="panel-section">
+          <div class="section-heading">Source Metadata</div>
+          <label class="field">
+            <span style="font-size: 12px; color: rgba(235, 240, 255, 0.6);">Upload metadata.json from analyzer</span>
+            <input id="metadata-file-input" type="file" accept=".json" style="font-size: 12px; padding: 8px;" />
+          </label>
+          <div id="metadata-import-result" style="margin-top: 8px;"></div>
+        </section>
+
+        <section class="panel-section">
           <div class="section-heading">Control Core</div>
           <label class="field">
             <span>Business Name</span>
@@ -100,6 +109,8 @@
     </section>
   </div>
 
+  <script src="js/layouts.js"></script>
+  <script src="js/industry-messaging.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

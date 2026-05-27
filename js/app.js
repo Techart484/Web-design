@@ -25,7 +25,9 @@ const state = {
   industry: 'saas',
   activeSections: ['navbar', 'hero', 'features', 'stats', 'pricing', 'contact', 'footer'],
   device: 'desktop',
-  codeTab: 'html'
+  codeTab: 'html',
+  sourceMetadata: null,
+  sourceLayoutArchetype: null
 };
 
 const componentMarkup = {
@@ -141,7 +143,21 @@ function getTheme() {
 
 function buildPreviewHtml() {
   const theme = getTheme();
-  const sections = state.activeSections.map(key => componentMarkup[key]().trim()).join('\n');
+  const sections = state.activeSections.map(key => {
+    const component = WebComponents[key];
+    if (!component) return '';
+    const params = {
+      BUSINESS_NAME: state.businessName,
+      CONTACT_EMAIL: state.contactEmail,
+      HERO_CTA: state.sourceMetadata?.brand?.cta_text || 'Get Started',
+      PRIMARY_COLOR: theme.primary,
+      ACCENT_COLOR: theme.accent,
+      SECONDARY_COLOR: theme.secondary
+    };
+    const rendered = renderComponent(key, params);
+    return rendered.html.trim();
+  }).join('\n');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -156,96 +172,42 @@ function buildPreviewHtml() {
 }
 
 function buildPreviewCss(theme) {
+  const componentCss = state.activeSections.map(key => {
+    const component = WebComponents[key];
+    return component?.css || '';
+  }).join('\n');
+
   return `
     :root {
       --primary: ${theme.primary};
       --secondary: ${theme.secondary};
       --accent: ${theme.accent};
       --background: ${theme.background};
-      --primary-glow: ${hexToRgba(theme.primary, 0.3)};
-      --accent-glow: ${hexToRgba(theme.accent, 0.2)};
-      --radius: 22px;
-      --font: 'Inter', sans-serif;
+      --color-primary: ${theme.primary};
+      --color-accent: ${theme.accent};
+      --color-bg: ${theme.background};
+      --color-text-muted: #9ca3af;
+      --color-primary-glow: rgba(139, 92, 246, 0.3);
+      --color-accent-glow: rgba(6, 182, 212, 0.2);
+      --nav-bg: rgba(14, 12, 21, 0.7);
+      --nav-border: rgba(255, 255, 255, 0.05);
+      --font-family: 'Outfit', sans-serif;
+      --container-width: 1200px;
+      --border-radius: 8px;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      font-family: var(--font);
+      font-family: var(--font-family);
       color: #f7f9ff;
-      background:
-        radial-gradient(circle at 20% 20%, ${hexToRgba(theme.primary, 0.14)}, transparent 35%),
-        radial-gradient(circle at 85% 15%, ${hexToRgba(theme.accent, 0.12)}, transparent 28%),
-        linear-gradient(180deg, #0a0b13, var(--background));
+      background: linear-gradient(180deg, #0a0b13, var(--background));
       min-height: 100vh;
     }
     a { color: inherit; text-decoration: none; }
-    .nav-shell, .section-block, .footer-shell {
-      width: min(1120px, calc(100% - 40px));
-      margin: 20px auto;
-    }
-    .nav-shell {
-      position: sticky; top: 18px; z-index: 10;
-      backdrop-filter: blur(18px);
-      background: rgba(10, 12, 20, 0.64);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 999px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.25);
-    }
-    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 22px; }
-    .nav-brand { display: flex; align-items: center; gap: 12px; }
-    .nav-mark { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 24px var(--primary-glow); }
-    .nav-title { font-weight: 800; letter-spacing: .04em; }
-    .nav-sub, .eyebrow, .hero-copy, .feature-card p, .stat-card span, .footer-note, .contact-copy p { color: rgba(235,240,255,.72); }
-    .nav-links { display: flex; gap: 18px; font-size: 14px; }
-    .nav-button, .hero-primary, .contact-card button {
-      padding: 12px 18px; border-radius: 999px; background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: white; font-weight: 700; box-shadow: 0 12px 30px ${hexToRgba(theme.primary, 0.26)};
-    }
-    .hero-shell { padding: 64px 0 20px; }
-    .hero-grid { width: min(1120px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: 1.2fr .8fr; gap: 30px; align-items: center; }
-    .eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
-    .hero-heading { font-size: clamp(40px, 6vw, 72px); line-height: .94; margin: 0 0 18px; letter-spacing: -.05em; }
-    .hero-heading span { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; color: transparent; }
-    .hero-copy { font-size: 18px; line-height: 1.7; max-width: 58ch; }
-    .hero-actions { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
-    .hero-secondary { padding: 12px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
-    .hero-panel, .feature-card, .price-card, .contact-card, .stat-card {
-      background: rgba(10, 12, 20, 0.72); border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius);
-      backdrop-filter: blur(18px);
-    }
-    .mini-window { padding: 14px; }
-    .mini-bar { display:flex; gap:8px; margin-bottom: 14px; }
-    .mini-bar span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.2); }
-    .mini-content { display:grid; gap: 12px; }
-    .mini-row { height: 16px; border-radius: 999px; background: linear-gradient(90deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); }
-    .mini-row.short { width: 68%; }
-    .mini-row.accent { width: 82%; background: linear-gradient(90deg, var(--primary), var(--accent)); }
-    .mini-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
-    .mini-grid div { aspect-ratio: 1; border-radius: 18px; background: ${hexToRgba(theme.accent, 0.12)}; border: 1px solid rgba(255,255,255,.08); }
-    .section-head { margin-bottom: 18px; }
-    .section-head h2, .contact-copy h2 { font-size: clamp(28px, 3vw, 42px); margin: 0; letter-spacing: -.04em; }
-    .feature-grid, .pricing-grid, .stats-grid { display:grid; gap: 16px; }
-    .feature-grid { grid-template-columns: repeat(3, 1fr); }
-    .feature-card, .price-card { padding: 24px; }
-    .feature-card.accent { border-color: ${hexToRgba(theme.accent, .35)}; box-shadow: 0 0 0 1px ${hexToRgba(theme.accent, .1)} inset; }
-    .stats-grid { grid-template-columns: repeat(4, 1fr); }
-    .stat-card { padding: 24px; text-align: center; }
-    .stat-card strong { display:block; font-size: 34px; margin-bottom: 6px; }
-    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
-    .price-card.popular { border-color: ${hexToRgba(theme.primary, .4)}; }
-    .price { font-size: 40px; font-weight: 800; margin: 18px 0; }
-    .contact-shell { display:grid; grid-template-columns: .9fr 1.1fr; gap: 22px; align-items: center; }
-    .contact-card { display:grid; gap: 12px; padding: 22px; }
-    .contact-card input, .contact-card textarea {
-      width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); padding: 14px 16px;
-      background: rgba(255,255,255,.03); color: white; font: inherit;
-    }
-    .footer-shell { display:flex; justify-content: space-between; gap: 16px; align-items:center; padding: 20px 0 40px; }
-    @media (max-width: 900px) {
-      .nav-inner, .hero-grid, .contact-shell, .footer-shell, .feature-grid, .pricing-grid, .stats-grid { grid-template-columns: 1fr; flex-direction: column; }
-      .nav-links { display:none; }
-    }
+    button { font-family: inherit; }
+    input, textarea { font-family: inherit; }
+    ${componentCss}
   `;
 }
 
@@ -258,6 +220,70 @@ function generatePreviewMarkup() {
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+}
+
+function applySourceMetadata(metadata) {
+  state.sourceMetadata = metadata;
+
+  if (metadata.brand && metadata.brand.business_name) {
+    state.businessName = metadata.brand.business_name;
+  }
+  if (metadata.brand && metadata.brand.email) {
+    state.contactEmail = metadata.brand.email;
+  }
+
+  if (metadata.metadata && metadata.metadata.category) {
+    const categoryToIndustry = {
+      'ecommerce': 'creative',
+      'portfolio': 'creative',
+      'local_business': 'construction',
+      'saas': 'saas',
+      'blog': 'creative',
+      'default': 'saas'
+    };
+    state.industry = categoryToIndustry[metadata.metadata.category] || 'saas';
+
+    const archetype = determineLayoutArchetype(metadata.metadata.category, metadata);
+    state.sourceLayoutArchetype = archetype;
+
+    if (confirm('Apply extracted layout archetype to active sections?')) {
+      state.activeSections = archetype.sections;
+    }
+  }
+
+  refreshAll();
+  showMetadataImportResult(metadata);
+}
+
+function showMetadataImportResult(metadata) {
+  const resultDiv = document.getElementById('metadata-import-result');
+  if (!resultDiv) return;
+
+  const category = metadata.metadata?.category || 'unknown';
+  const confidence = (metadata.metadata?.detection_confidence || 0).toFixed(2);
+  const businessName = metadata.brand?.business_name || 'Not detected';
+
+  resultDiv.innerHTML = `
+    <div style="padding: 12px; background: rgba(107, 92, 255, 0.1); border: 1px solid rgba(107, 92, 255, 0.3); border-radius: 8px; font-size: 12px;">
+      <div><strong>✓ Metadata Loaded</strong></div>
+      <div>Category: ${category} (confidence: ${confidence})</div>
+      <div>Business: ${businessName}</div>
+      <div style="margin-top: 8px; color: rgba(235, 240, 255, 0.6);">Fields extracted: Business name, email, colors, typography, content</div>
+    </div>
+  `;
+}
+
+function handleMetadataFileUpload(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const metadata = JSON.parse(e.target.result);
+      applySourceMetadata(metadata);
+    } catch (err) {
+      alert('Error parsing metadata.json: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
 }
 
 function renderPreview() {
@@ -383,6 +409,15 @@ function bindControls() {
     updatePreviewTokens(true);
   });
 
+  const metadataFileInput = document.getElementById('metadata-file-input');
+  if (metadataFileInput) {
+    metadataFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleMetadataFileUpload(e.target.files[0]);
+      }
+    });
+  }
+
   document.querySelectorAll('.device-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.device-btn').forEach(node => node.classList.remove('active'));
@@ -434,35 +469,35 @@ function updatePreviewTokens(rebuildMarkup = false) {
   doc.documentElement.style.setProperty('--secondary', theme.secondary);
   doc.documentElement.style.setProperty('--accent', theme.accent);
   doc.documentElement.style.setProperty('--background', theme.background);
-  doc.documentElement.style.setProperty('--primary-glow', hexToRgba(theme.primary, 0.3));
-  doc.documentElement.style.setProperty('--accent-glow', hexToRgba(theme.accent, 0.2));
-  if (doc.body) doc.body.style.background = theme.background;
+  doc.documentElement.style.setProperty('--color-primary', theme.primary);
+  doc.documentElement.style.setProperty('--color-accent', theme.accent);
+  doc.documentElement.style.setProperty('--color-bg', theme.background);
+  if (doc.body) doc.body.style.background = `linear-gradient(180deg, #0a0b13, ${theme.background})`;
 
   if (rebuildMarkup) {
     iframe.srcdoc = generatePreviewMarkup();
   } else {
     const body = doc.body;
     if (!body) return;
-    body.innerHTML = state.activeSections.map(key => componentMarkup[key]().trim()).join('\n')
-      .replaceAll('{{BUSINESS_NAME}}', escapeHtml(state.businessName))
-      .replaceAll('{{CONTACT_EMAIL}}', escapeHtml(state.contactEmail));
+    const sections = state.activeSections.map(key => {
+      const params = {
+        BUSINESS_NAME: state.businessName,
+        CONTACT_EMAIL: state.contactEmail,
+        HERO_CTA: state.sourceMetadata?.brand?.cta_text || 'Get Started',
+        PRIMARY_COLOR: theme.primary,
+        ACCENT_COLOR: theme.accent,
+        SECONDARY_COLOR: theme.secondary
+      };
+      const rendered = renderComponent(key, params);
+      return rendered.html.trim();
+    }).join('\n');
+    body.innerHTML = sections;
   }
   refreshCodeDrawer();
 }
 
 async function downloadZip() {
-  const zip = new JSZip();
-  const html = generatePreviewMarkup();
-  const css = buildPreviewCss(getTheme());
-  zip.file('index.html', html);
-  zip.folder('css').file('styles.css', css);
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'aura-production.zip';
-  link.click();
-  URL.revokeObjectURL(url);
+  Exporter.downloadProductionZip(state);
 }
 
 function init() {

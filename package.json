@@ -4,7 +4,7 @@
   "description": "Production-grade dependency-free web design automation factory with headless CI/CD compilation pipeline.",
   "main": "scripts/generate.js",
   "scripts": {
-    "extract": "python scripts/extract_brand.py",
+    "extract": "python scripts/extract_brand.py $URL --output metadata.json",
     "generate": "node scripts/generate.js",
     "build:css": "npx @tailwindcss/cli -i ./templates/master-landing-page/styles.css -o ./dist/styles.css --minify",
     "build": "npm run generate && npm run build:css",
