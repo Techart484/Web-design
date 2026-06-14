@@ -44,14 +44,35 @@ const LAYOUT_ARCHETYPES = {
 };
 
 function determineLayoutArchetype(category, metadata = {}) {
-  const archetype = LAYOUT_ARCHETYPES[category] || LAYOUT_ARCHETYPES['default'];
+  const baseArchetype = LAYOUT_ARCHETYPES[category] ? { ...LAYOUT_ARCHETYPES[category] } : { ...LAYOUT_ARCHETYPES['default'] };
+  const businessModel = metadata.metadata?.business_model || '';
+  const content = metadata.content || {};
+
+  if (category === 'ecommerce') {
+    if (businessModel === 'subscription') {
+      baseArchetype.sections = ['navbar', 'hero', 'pricing', 'product-grid', 'testimonials', 'footer'];
+      baseArchetype.cta_primary = 'Choose Your Plan';
+      baseArchetype.feature_cards = 'subscription-plan-grid';
+    } else if (businessModel === 'wholesale') {
+      baseArchetype.sections = ['navbar', 'hero', 'product-grid', 'collections', 'pricing', 'footer'];
+      baseArchetype.cta_primary = 'Browse Wholesale';
+      baseArchetype.feature_cards = 'bulk-product-grid';
+    } else {
+      baseArchetype.sections = ['navbar', 'hero', 'product-grid', 'testimonials', 'footer'];
+      baseArchetype.feature_cards = 'product-highlights';
+    }
+  } else if (category === 'blog' || content.articles) {
+    baseArchetype.sections = ['navbar', 'hero', 'featured-posts', 'recent-articles', 'newsletter', 'footer'];
+    baseArchetype.feature_cards = 'article-feed';
+  }
+
   return {
     archetype: category,
-    name: archetype.name,
-    sections: archetype.sections.filter(s => s !== 'product-grid' && s !== 'project-gallery' && s !== 'featured-posts' && s !== 'recent-articles'),
-    hero_style: archetype.hero_style,
-    primary_cta: (metadata.brand && metadata.brand.cta_text) || archetype.cta_primary,
-    feature_cards: archetype.feature_cards
+    name: baseArchetype.name,
+    sections: baseArchetype.sections,
+    hero_style: baseArchetype.hero_style,
+    primary_cta: (metadata.brand && metadata.brand.cta_text) || baseArchetype.cta_primary,
+    feature_cards: baseArchetype.feature_cards
   };
 }
 

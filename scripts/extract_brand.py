@@ -9,6 +9,7 @@ import json
 import re
 import urllib.request
 from urllib.error import URLError, HTTPError
+from html import unescape
 from html.parser import HTMLParser
 
 INDUSTRY_MATRICES = {
@@ -26,6 +27,50 @@ def clean_color(hex_val):
     if len(hex_val) == 4:
         hex_val = '#' + ''.join(c*2 for c in hex_val[1:])
     return hex_val[:7].lower()
+
+def decode_text(value):
+    if not value or not isinstance(value, str):
+        return ''
+    # Recursively unescape until no more entities are found
+    decoded = value
+    while True:
+        unescaped_once = unescape(decoded)
+        if unescaped_once == decoded:
+            break
+        decoded = unescaped_once
+    return re.sub(r'\s+', ' ', decoded.strip())
+
+def strip_tags(value):
+    if not value or not isinstance(value, str):
+        return ''
+    return re.sub(r'<[^>]+>', '', value)
+
+def extract_link_texts(html_fragment):
+    links = re.findall(r'<a[^>]*>(.*?)</a>', html_fragment, re.IGNORECASE | re.DOTALL)
+    return [decode_text(strip_tags(link)) for link in links if decode_text(strip_tags(link))]
+
+def extract_nav_links(html_content):
+    navs = re.findall(r'<nav[^>]*>(.*?)</nav>', html_content, re.IGNORECASE | re.DOTALL)
+    link_texts = []
+    for nav in navs:
+        link_texts.extend(extract_link_texts(nav))
+    return link_texts
+
+def extract_footer_links(html_content):
+    footers = re.findall(r'<footer[^>]*>(.*?)</footer>', html_content, re.IGNORECASE | re.DOTALL)
+    footer_groups = []
+    for footer in footers:
+        sections = re.findall(r'(<(?:div|section|ul)[^>]*>(?:.*?</(?:div|section|ul)>))', footer, re.IGNORECASE | re.DOTALL)
+        if sections:
+            for section in sections:
+                texts = extract_link_texts(section)
+                if texts:
+                    footer_groups.append(texts)
+        else:
+            texts = extract_link_texts(footer)
+            if texts:
+                footer_groups.append(texts)
+    return footer_groups
 
 def extract_colors(html_content):
     hex_pattern = re.compile(r'#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b')
@@ -68,17 +113,16 @@ def extract_business_info(html_content):
     # Business name from title or h1
     title_match = re.search(r'<title[^>]*>(.*?)</title>', html_content, re.IGNORECASE | re.DOTALL)
     if title_match:
-        info['business_name'] = title_match.group(1).strip()[:80]
+        info['business_name'] = decode_text(title_match.group(1))[:80]
 
     h1_match = re.search(r'<h1[^>]*>(.*?)</h1>', html_content, re.IGNORECASE | re.DOTALL)
     if h1_match and not info.get('business_name'):
-        text = re.sub(r'<[^>]+>', '', h1_match.group(1)).strip()
-        info['business_name'] = text[:80]
+        info['business_name'] = decode_text(strip_tags(h1_match.group(1)))[:80]
 
     # Meta description as tagline
     desc_match = re.search(r'<meta\s+name=["\']description["\'][^>]*content=["\']([^"\']+)["\']', html_content, re.IGNORECASE)
     if desc_match:
-        info['tagline'] = desc_match.group(1).strip()[:150]
+        info['tagline'] = decode_text(desc_match.group(1))[:150]
 
     # Email extraction
     email_match = re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', html_content)
@@ -93,16 +137,25 @@ def extract_business_info(html_content):
     # Address - look for common patterns
     address_match = re.search(r'(\d+\s+[A-Za-z0-9\s,.]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd)[,\s]+[A-Za-z\s]+[,\s]+[A-Z]{2})', html_content, re.IGNORECASE)
     if address_match:
-        info['address'] = address_match.group(1).strip()[:100]
+        info['address'] = decode_text(address_match.group(1))[:100]
 
     # Primary CTA text and URL
     cta_match = re.search(r'<(?:a|button)[^>]*(?:href=["\']([^"\']+)["\'])?[^>]*>([^<]+)</(?:a|button)>', html_content, re.IGNORECASE)
     if cta_match:
-        info['cta_text'] = cta_match.group(2).strip()[:50]
+        info['cta_text'] = decode_text(cta_match.group(2))[:50]
         if cta_match.group(1):
             info['cta_url'] = cta_match.group(1)
 
     return info
+
+def detect_business_model(html_content):
+    lower_html = html_content.lower()
+    if any(term in lower_html for term in ['subscription', 'membership', 'monthly plan', 'subscribe', 'recurring']):
+        return 'subscription'
+    if any(term in lower_html for term in ['wholesale', 'bulk order', 'reseller', 'distributor']):
+        return 'wholesale'
+    return 'ecommerce' if any(term in lower_html for term in ['cart', 'checkout', 'shop', 'add to cart', 'buy now', 'product', 'catalog', 'collection']) else 'direct'
+
 
 def detect_category(html_content):
     """Detect site category (ecommerce, portfolio, local_business, saas, blog)."""
@@ -110,25 +163,30 @@ def detect_category(html_content):
     confidence = 0.0
     category = 'default'
 
+    nav_links = extract_nav_links(html_content)
+    footer_groups = extract_footer_links(html_content)
+    nav_text = ' '.join(nav_links).lower()
+    footer_text = ' '.join([item for section in footer_groups for item in section]).lower()
+
     # E-commerce indicators
-    ecommerce_keywords = ['product', 'cart', 'checkout', 'shop', 'buy', 'price', '$', 'add to cart', 'store']
-    ecommerce_score = sum(1 for kw in ecommerce_keywords if kw in lower_html)
+    ecommerce_keywords = ['product', 'cart', 'checkout', 'shop', 'buy', 'price', '$', 'add to cart', 'store', 'catalog', 'collection']
+    ecommerce_score = sum(1 for kw in ecommerce_keywords if kw in lower_html or kw in nav_text or kw in footer_text)
 
     # Portfolio indicators
-    portfolio_keywords = ['portfolio', 'project', 'case study', 'work', 'gallery', 'design', 'creative']
-    portfolio_score = sum(1 for kw in portfolio_keywords if kw in lower_html)
+    portfolio_keywords = ['portfolio', 'project', 'case study', 'work', 'gallery', 'design', 'creative', 'agency']
+    portfolio_score = sum(1 for kw in portfolio_keywords if kw in lower_html or kw in nav_text or kw in footer_text)
 
     # Local business indicators
-    local_keywords = ['service', 'contact us', 'appointment', 'phone', 'address', 'hours', 'location']
-    local_score = sum(1 for kw in local_keywords if kw in lower_html)
+    local_keywords = ['service', 'contact us', 'appointment', 'phone', 'address', 'hours', 'location', 'visit us', 'book now']
+    local_score = sum(1 for kw in local_keywords if kw in lower_html or kw in nav_text or kw in footer_text)
 
     # SaaS indicators
-    saas_keywords = ['feature', 'pricing', 'plan', 'trial', 'api', 'integration', 'dashboard']
-    saas_score = sum(1 for kw in saas_keywords if kw in lower_html)
+    saas_keywords = ['feature', 'pricing', 'plan', 'trial', 'api', 'integration', 'dashboard', 'signup', 'subscribe']
+    saas_score = sum(1 for kw in saas_keywords if kw in lower_html or kw in nav_text or kw in footer_text)
 
     # Blog indicators
-    blog_keywords = ['article', 'blog', 'post', 'author', 'published', 'read more', 'category']
-    blog_score = sum(1 for kw in blog_keywords if kw in lower_html)
+    blog_keywords = ['article', 'blog', 'post', 'author', 'published', 'read more', 'category', 'news', 'insights']
+    blog_score = sum(1 for kw in blog_keywords if kw in lower_html or kw in nav_text or kw in footer_text)
 
     scores = {
         'ecommerce': ecommerce_score,
@@ -140,9 +198,9 @@ def detect_category(html_content):
 
     category = max(scores, key=scores.get)
     max_score = scores[category]
-    confidence = min(1.0, max_score / 5.0)
-
-    return category, confidence
+    confidence = min(1.0, max(0.0, max_score / 6.0))
+    business_model = detect_business_model(html_content)
+    return category, confidence, business_model, nav_links, footer_groups
 
 def extract_typography(html_content):
     """Extract font families and typography information."""
@@ -177,33 +235,80 @@ def extract_imagery(html_content):
     return imagery
 
 def extract_content(html_content):
-    """Extract headlines, features, products, and other key content."""
+    """Extract headlines, features, products, nav structure, and footer hierarchy."""
     content = {}
 
     # Hero headline (first h1 after body or in hero section)
-    h1_match = re.search(r'<h1[^>]*>([^<]+)</h1>', html_content, re.IGNORECASE)
+    h1_match = re.search(r'<h1[^>]*>(.*?)</h1>', html_content, re.IGNORECASE | re.DOTALL)
     if h1_match:
-        content['hero_headline'] = h1_match.group(1).strip()[:150]
+        content['hero_headline'] = decode_text(strip_tags(h1_match.group(1)))[:150]
 
     # Hero subheadline (first h2 or subtitle)
-    h2_match = re.search(r'<h2[^>]*>([^<]+)</h2>', html_content, re.IGNORECASE)
+    h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', html_content, re.IGNORECASE | re.DOTALL)
     if h2_match:
-        content['hero_subheadline'] = h2_match.group(1).strip()[:150]
+        content['hero_subheadline'] = decode_text(strip_tags(h2_match.group(1)))[:150]
 
-    # Extract first few paragraphs as features
-    p_pattern = re.compile(r'<p[^>]*>([^<]+)</p>', re.IGNORECASE)
-    p_matches = p_pattern.findall(html_content)[:3]
+    # Navigation links
+    content['nav_links'] = extract_nav_links(html_content)
 
-    features = []
-    for idx, p_text in enumerate(p_matches):
-        clean_text = re.sub(r'<[^>]+>', '', p_text).strip()
-        if len(clean_text) > 10:
-            features.append({
-                'title': f'Feature {idx + 1}',
-                'description': clean_text[:150]
+    # Footer hierarchies
+    footer_groups = extract_footer_links(html_content)
+    if footer_groups:
+        content['footer_links'] = footer_groups
+
+    products = []
+    product_section = re.search(r'<(?:section|div|article)[^>]*class=["\'][^"\']*(?:product|collection|catalog|shop|grid|items)[^"\']*["\'][^>]*>(.*?)</(?:section|div|article)>', html_content, re.IGNORECASE | re.DOTALL)
+    if product_section:
+        product_html = product_section.group(0)
+        card_matches = re.findall(r'<(?:article|div)[^>]*class=["\'][^"\']*(?:product|card|item|collection|grid-item|product-card)[^"\']*["\'][^>]*>(.*?)</(?:article|div)>', product_html, re.IGNORECASE | re.DOTALL)
+        for idx, card_html in enumerate(card_matches[:6]):
+            title_match = re.search(r'<h[12][^>]*>(.*?)</h[12]>', card_html, re.IGNORECASE | re.DOTALL)
+            desc_match = re.search(r'<p[^>]*>(.*?)</p>', card_html, re.IGNORECASE | re.DOTALL)
+            price_match = re.search(r'(\$\s?\d+[\d,.]*)', card_html)
+            link_match = re.search(r'<a[^>]*href=["\']([^"\']+)["\']', card_html, re.IGNORECASE)
+            title = decode_text(strip_tags(title_match.group(1))) if title_match else ''
+            description = decode_text(strip_tags(desc_match.group(1))) if desc_match else ''
+            products.append({
+                'title': title or f'Product {idx + 1}',
+                'description': description,
+                'price': price_match.group(1) if price_match else '',
+                'link': link_match.group(1) if link_match else ''
             })
 
-    content['features'] = features
+    if products:
+        content['products'] = products
+    else:
+        articles = []
+        article_matches = re.findall(r'<article[^>]*>(.*?)</article>', html_content, re.IGNORECASE | re.DOTALL)
+        if not article_matches:
+            article_matches = re.findall(r'<(?:div|li)[^>]*class=["\'][^"\']*(?:article|post|blog|news)[^"\']*["\'][^>]*>(.*?)</(?:div|li)>', html_content, re.IGNORECASE | re.DOTALL)
+        for idx, article_html in enumerate(article_matches[:5]):
+            title_match = re.search(r'<h[12][^>]*>(.*?)</h[12]>', article_html, re.IGNORECASE | re.DOTALL)
+            snippet_match = re.search(r'<p[^>]*>(.*?)</p>', article_html, re.IGNORECASE | re.DOTALL)
+            link_match = re.search(r'<a[^>]*href=["\']([^"\']+)["\']', article_html, re.IGNORECASE)
+            title = decode_text(strip_tags(title_match.group(1))) if title_match else f'Article {idx + 1}'
+            snippet = decode_text(strip_tags(snippet_match.group(1))) if snippet_match else ''
+            articles.append({
+                'title': title,
+                'snippet': snippet,
+                'link': link_match.group(1) if link_match else ''
+            })
+        if articles:
+            content['articles'] = articles
+
+    # Extract first few paragraphs as fallback features
+    if 'products' not in content and 'articles' not in content:
+        p_pattern = re.compile(r'<p[^>]*>(.*?)</p>', re.IGNORECASE | re.DOTALL)
+        p_matches = p_pattern.findall(html_content)[:3]
+        features = []
+        for idx, p_text in enumerate(p_matches):
+            clean_text = decode_text(strip_tags(p_text))
+            if len(clean_text) > 10:
+                features.append({
+                    'title': f'Feature {idx + 1}',
+                    'description': clean_text[:150]
+                })
+        content['features'] = features
 
     return content
 
@@ -277,13 +382,20 @@ def main():
                     }
 
                 metadata['brand'] = extract_business_info(html)
-                category, confidence = detect_category(html)
+                category, confidence, business_model, nav_links, footer_groups = detect_category(html)
                 metadata['metadata']['category'] = category
                 metadata['metadata']['detection_confidence'] = confidence
+                metadata['metadata']['business_model'] = business_model
+                metadata['metadata']['architecture'] = f"{category}:{business_model}"
 
                 metadata['typography'] = extract_typography(html)
                 metadata['imagery'] = extract_imagery(html)
-                metadata['content'] = extract_content(html)
+                content = extract_content(html)
+                if nav_links:
+                    content['nav_links'] = nav_links
+                if footer_groups:
+                    content['footer_links'] = footer_groups
+                metadata['content'] = content
                 metadata['tech_stack'] = detect_tech_stack(html)
                 metadata['metadata']['source_url'] = target_url
 

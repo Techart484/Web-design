@@ -7,6 +7,28 @@
 const fs = require('fs');
 const path = require('path');
 
+const HTML_ENTITY_MAP = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", ndash: '–', mdash: '—', nbsp: ' ', copy: '©', reg: '®', trade: '™'
+};
+
+function decodeHtmlEntities(value) {
+  if (typeof value !== 'string') return value;
+  return value.replace(/&(#x?[0-9A-Fa-f]+|\w+);/g, (match, entity) => {
+    if (entity[0] === '#') {
+      const code = entity[1].toLowerCase() === 'x'
+        ? parseInt(entity.substr(2), 16)
+        : parseInt(entity.substr(1), 10);
+      return Number.isNaN(code) ? match : String.fromCharCode(code);
+    }
+    return HTML_ENTITY_MAP[entity] || match;
+  });
+}
+
+function normalizeString(value) {
+  if (typeof value !== 'string') return value;
+  return decodeHtmlEntities(value).trim();
+}
+
 // Parse command line arguments and environment variables
 const metadataFile = process.env.METADATA_FILE || 'metadata.json';
 const outputFile = process.env.OUTPUT_FILE || path.join(process.cwd(), 'dist', 'index.html');
@@ -58,11 +80,11 @@ const tokens = {};
 
 // Priority 1: Source metadata brand info
 if (metadata.brand) {
-  tokens.BUSINESS_NAME = metadata.brand.business_name || 'Our Services';
-  tokens.CONTACT_EMAIL = metadata.brand.email || 'info@domain.com';
-  tokens.CONTACT_PHONE = metadata.brand.phone || '';
-  tokens.CONTACT_ADDRESS = metadata.brand.address || '';
-  tokens.HERO_CTA = metadata.brand.cta_text || 'Get Started';
+  tokens.BUSINESS_NAME = normalizeString(metadata.brand.business_name || 'Our Services');
+  tokens.CONTACT_EMAIL = normalizeString(metadata.brand.email || 'info@domain.com');
+  tokens.CONTACT_PHONE = normalizeString(metadata.brand.phone || '');
+  tokens.CONTACT_ADDRESS = normalizeString(metadata.brand.address || '');
+  tokens.HERO_CTA = normalizeString(metadata.brand.cta_text || 'Get Started');
 }
 
 // Priority 2: Override with environment variables
@@ -71,13 +93,13 @@ if (contactEmail.trim()) tokens.CONTACT_EMAIL = contactEmail.trim();
 
 // Priority 3: Content extraction
 if (metadata.content) {
-  tokens.HERO_HEADLINE = metadata.content.hero_headline || tokens.BUSINESS_NAME;
-  tokens.HERO_SUBHEADLINE = metadata.content.hero_subheadline || '';
+  tokens.HERO_HEADLINE = normalizeString(metadata.content.hero_headline || tokens.BUSINESS_NAME);
+  tokens.HERO_SUBHEADLINE = normalizeString(metadata.content.hero_subheadline || '');
 
   if (metadata.content.features && metadata.content.features.length > 0) {
     metadata.content.features.forEach((feature, idx) => {
-      tokens[`FEATURE_${idx + 1}_TITLE`] = feature.title || '';
-      tokens[`FEATURE_${idx + 1}_DESC`] = feature.description || '';
+      tokens[`FEATURE_${idx + 1}_TITLE`] = normalizeString(feature.title || '');
+      tokens[`FEATURE_${idx + 1}_DESC`] = normalizeString(feature.description || '');
     });
   }
 }
