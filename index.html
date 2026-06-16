@@ -3,329 +3,473 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURA // Web Design Automation Factory</title>
-  
-  <!-- SEO Metadata -->
-  <meta name="description" content="Premium, single-page, dependency-free visual web design creator and design system orchestrator.">
-  <meta name="keywords" content="web builder, design automation, low-code, web factory, premium ui">
-  
-  <!-- Core Builder Dashboard Styles -->
+  <title>AURA // Autonomous Web Designer Engine</title>
+  <meta name="description" content="6-stage autonomous web design pipeline with AI-powered brand extraction, competitor analysis, and production-grade export.">
+  <meta name="keywords" content="web design automation, AI pipeline, brand extraction, no-code builder, autonomous design">
+
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- Production Assets: JSZip for Native Client-Side ZIP Packaging -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- JSZip with SRI hash (FIX #10) -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+    integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    defer></script>
 </head>
 <body>
 
-  <!-- Background Decorative Glowing Meshes -->
-  <div class="bg-glow-1"></div>
-  <div class="bg-glow-2"></div>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Custom Confirm Modal Insertion Point -->
+
+  <!-- Background Decorative Meshes -->
+  <div class="bg-glow-1" aria-hidden="true"></div>
+  <div class="bg-glow-2" aria-hidden="true"></div>
 
   <!-- Header Dashboard Bar -->
-  <header>
+  <header role="banner">
     <div class="logo" id="dashboard-logo">
-      <div class="logo-icon">▲</div>
+      <div class="logo-icon" aria-hidden="true">▲</div>
       <span class="logo-text">AURA.SYSTEM</span>
-      <span class="logo-badge">AUTOMATION ENGINE</span>
+      <span class="logo-badge">AUTONOMOUS ENGINE v2</span>
     </div>
-    
+
     <div class="header-controls">
-      <!-- Preset Templates Selector -->
       <div style="display: flex; align-items: center; gap: 8px;">
-        <label for="preset-selector" style="font-size: 11px; font-weight: 600; color: var(--color-text-muted);">PRESET CONFIG MATRIX:</label>
-        <select id="preset-selector" class="form-select" style="width: 200px; padding: 6px 10px; font-size: 12.5px;">
+        <label for="preset-selector" style="font-size: 11px; font-weight: 600; color: var(--color-text-muted);">PRESET CONFIG:</label>
+        <select id="preset-selector" class="form-select" style="width: 200px; padding: 6px 10px; font-size: 12.5px;" aria-label="Template Preset Selector">
           <option value="saas">SaaS Launch Engine (Default)</option>
           <option value="creative">Creative Agency Portal</option>
           <option value="construction">Industrial Roofing / Construction</option>
-          <option value="medical">Medical & Dental Clinic</option>
-          <option value="legal">Legal & Professional Practice</option>
-          <option value="fitness">Elite Fitness & Gym Club</option>
+          <option value="medical">Medical &amp; Dental Clinic</option>
+          <option value="legal">Legal &amp; Professional Practice</option>
+          <option value="fitness">Elite Fitness &amp; Gym Club</option>
         </select>
       </div>
 
-      <button id="clear-canvas-btn" class="btn btn-secondary" title="Clear All Active Canvas Layout Sections">
-        <span>🗑️</span> Clear Layout
+      <button id="clear-canvas-btn" class="btn btn-secondary" title="Clear All Active Canvas Layout Sections" aria-label="Clear Canvas">
+        <span aria-hidden="true">🗑️</span> Clear Layout
       </button>
-      
-      <button id="toggle-code-drawer" class="btn btn-secondary" title="View Compiled HTML/CSS Code">
+
+      <button id="toggle-code-drawer" class="btn btn-secondary" title="View Compiled HTML/CSS Code" aria-label="Toggle Code Viewer">
         🖨️ View Compiled Code
       </button>
-      
-      <button id="download-zip-btn" class="btn btn-primary" title="Export Production /dist ZIP Locally">
+
+      <button id="download-zip-btn" class="btn btn-primary" title="Export Production /dist ZIP" aria-label="Download ZIP">
         📦 Download ZIP
       </button>
     </div>
   </header>
 
   <!-- Main Application Workspace -->
-  <main>
-    
-    <!-- Sidebar Control panel (Left) -->
-    <div class="sidebar" id="control-sidebar">
-      <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="design" id="tab-design-system">🎨 Design System</button>
-        <button class="tab-btn" data-tab="components" id="tab-components-library">🧩 Components</button>
-        <button class="tab-btn" data-tab="seo" id="tab-seo-metadata">📡 SEO & Uplink</button>
+  <main role="main">
+
+    <!-- ── Left Sidebar Control Panel ── -->
+    <div class="sidebar" id="control-sidebar" role="complementary" aria-label="Design Controls">
+      <div class="sidebar-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="design" id="tab-design-system" role="tab" aria-selected="true" aria-controls="panel-design">🎨 Design</button>
+        <button class="tab-btn" data-tab="components" id="tab-components-library" role="tab" aria-selected="false" aria-controls="panel-components">🧩 Components</button>
+        <button class="tab-btn" data-tab="seo" id="tab-seo-metadata" role="tab" aria-selected="false" aria-controls="panel-seo">📡 SEO</button>
+        <button class="tab-btn pipeline-tab" data-tab="pipeline" id="tab-pipeline" role="tab" aria-selected="false" aria-controls="panel-pipeline">⚡ AI Pipeline</button>
       </div>
 
       <div class="sidebar-content">
-        
-        <!-- Panel 1: Design System Controls -->
-        <div class="panel-section active" id="panel-design">
-          <div class="panel-title">
-            <span>⚙️</span> Brand Scan Vector
-          </div>
-          <div class="form-group">
-            <label for="client-url" class="form-label">CLIENT WEBSITE URL (BRAND HARVESTER)</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="client-url" class="form-input" placeholder="e.g. dentalclinic.com" style="flex: 1;">
-              <button id="brand-scan-btn" class="btn btn-accent" style="padding: 10px 14px;">Scan</button>
+
+        <!-- ── PANEL 1: Design System ── -->
+        <div class="panel-section active" id="panel-design" role="tabpanel" aria-labelledby="tab-design-system">
+
+          <!-- Dual-Input Controller -->
+          <div class="dual-input-controller">
+            <div class="dual-input-tabs">
+              <button class="dual-tab active" id="dual-tab-url" data-input="url">🌐 URL Scan</button>
+              <button class="dual-tab" id="dual-tab-words" data-input="words">✏️ Style Words</button>
             </div>
-            <span style="font-size: 10.5px; color: var(--color-text-muted); display: block; margin-top: 5px; line-height: 1.3;">
-              *Analyzes brand color profiles. Automatically falls back to high-fidelity industry matrices if blank.
-            </span>
+
+            <!-- URL Mode -->
+            <div class="dual-input-pane active" id="dual-pane-url">
+              <label for="client-url" class="form-label">CLIENT WEBSITE URL</label>
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <input type="url" id="client-url" class="form-input" placeholder="e.g. dentalclinic.com" style="flex: 1;" aria-label="Client website URL">
+                <button id="brand-scan-btn" class="btn btn-accent" style="padding: 10px 14px; white-space: nowrap;" aria-label="Scan brand colors">⚡ Scan</button>
+              </div>
+              <span class="input-hint">Parses CSS variables and color tokens from the target site. Falls back to industry matrix if unreachable.</span>
+            </div>
+
+            <!-- Style Words Mode -->
+            <div class="dual-input-pane" id="dual-pane-words">
+              <label for="style-words" class="form-label">STYLE DESCRIPTOR WORDS</label>
+              <textarea id="style-words" class="form-input" rows="3" placeholder="e.g. glassmorphic, neon purple, dark slate, aggressive red, corporate minimal" style="margin-top: 6px; resize: vertical; min-height: 72px;" aria-label="Style descriptor words"></textarea>
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button id="style-words-apply-btn" class="btn btn-primary" style="flex: 1; font-size: 12px;">Apply Style Words</button>
+                <button id="style-words-clear-btn" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" aria-label="Clear style words">✕</button>
+              </div>
+              <span class="input-hint">Comma-separated descriptors map to theme variables. AI-enhanced if Ollama is online.</span>
+            </div>
+
+            <!-- Active Tag Display -->
+            <div class="style-tags-display" id="style-tags-display" style="display: none;">
+              <span class="style-tags-label">ACTIVE STYLE TAGS:</span>
+              <div class="style-tags-list" id="style-tags-list"></div>
+            </div>
           </div>
 
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
+          <div class="panel-divider"></div>
 
-          <div class="panel-title">
-            <span>🎨</span> Color Styling Matrix
-          </div>
+          <!-- Color Matrix -->
+          <div class="panel-title"><span aria-hidden="true">🎨</span> Color Styling Matrix</div>
           <div class="form-group">
             <div class="color-inputs-grid">
               <div>
                 <label class="form-label">PRIMARY BRAND</label>
                 <div class="color-picker-wrapper" id="color-primary-wrapper">
-                  <input type="color" class="color-picker" value="#8b5cf6">
-                  <span class="color-hex-text">#8b5cf6</span>
+                  <input type="color" class="color-picker" value="#8b5cf6" aria-label="Primary brand color">
+                  <span class="color-hex-text" role="button" tabindex="0">#8b5cf6</span>
                 </div>
               </div>
               <div>
                 <label class="form-label">SECONDARY BRAND</label>
                 <div class="color-picker-wrapper" id="color-secondary-wrapper">
-                  <input type="color" class="color-picker" value="#f43f5e">
-                  <span class="color-hex-text">#f43f5e</span>
+                  <input type="color" class="color-picker" value="#f43f5e" aria-label="Secondary brand color">
+                  <span class="color-hex-text" role="button" tabindex="0">#f43f5e</span>
                 </div>
               </div>
               <div>
                 <label class="form-label">NEON ACCENT</label>
                 <div class="color-picker-wrapper" id="color-accent-wrapper">
-                  <input type="color" class="color-picker" value="#06b6d4">
-                  <span class="color-hex-text">#06b6d4</span>
+                  <input type="color" class="color-picker" value="#06b6d4" aria-label="Accent color">
+                  <span class="color-hex-text" role="button" tabindex="0">#06b6d4</span>
                 </div>
               </div>
               <div>
                 <label class="form-label">CANVAS BG</label>
                 <div class="color-picker-wrapper" id="color-bg-wrapper">
-                  <input type="color" class="color-picker" value="#06050b">
-                  <span class="color-hex-text">#06050b</span>
+                  <input type="color" class="color-picker" value="#06050b" aria-label="Background color">
+                  <span class="color-hex-text" role="button" tabindex="0">#06050b</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
+          <div class="panel-divider"></div>
 
-          <div class="panel-title">
-            <span>📏</span> Layout Parameters
-          </div>
+          <!-- Layout Parameters -->
+          <div class="panel-title"><span aria-hidden="true">📏</span> Layout Parameters</div>
           <div class="form-group">
             <label for="container-width" class="form-label">MAX CONTAINER WIDTH (PX)</label>
-            <input type="range" id="container-width" min="960" max="1440" step="20" class="form-input" style="padding: 0; cursor: pointer;">
+            <input type="range" id="container-width" min="960" max="1440" step="20" class="form-input" style="padding: 0; cursor: pointer;" aria-label="Container width">
           </div>
           <div class="form-group">
             <label for="border-radius" class="form-label">BORDER RADIUS (PX)</label>
-            <input type="range" id="border-radius" min="0" max="24" step="2" class="form-input" style="padding: 0; cursor: pointer;">
+            <input type="range" id="border-radius" min="0" max="24" step="2" class="form-input" style="padding: 0; cursor: pointer;" aria-label="Border radius">
           </div>
           <div class="form-group">
             <label for="font-family" class="form-label">TYPOGRAPHY SYSTEM</label>
-            <select id="font-family" class="form-select">
-              <option value="Outfit">Outfit (Geometric & Modern)</option>
-              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Sleek & Tech)</option>
+            <select id="font-family" class="form-select" aria-label="Font family">
+              <option value="Outfit">Outfit (Geometric &amp; Modern)</option>
+              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Sleek &amp; Tech)</option>
             </select>
           </div>
         </div>
 
-        <!-- Panel 2: Components Grid List -->
-        <div class="panel-section" id="panel-components">
-          <div class="panel-title">
-            <span>🧩</span> Navigation Registry
-          </div>
+        <!-- ── PANEL 2: Components ── -->
+        <div class="panel-section" id="panel-components" role="tabpanel" aria-labelledby="tab-components-library">
+          <div class="panel-title"><span aria-hidden="true">🧩</span> Navigation Registry</div>
           <div class="component-grid">
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Glassmorphic Navbar</span>
                 <span class="component-desc">Translucent sticky top-bar</span>
               </div>
-              <button class="component-add-btn" data-component="navbar" title="Add Navbar to Layout">+</button>
+              <button class="component-add-btn" data-component="navbar" title="Add Navbar" aria-label="Add Navbar component">+</button>
             </div>
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Clean Footer</span>
-                <span class="component-desc">MIT copyright & link indices</span>
+                <span class="component-desc">MIT copyright &amp; link indices</span>
               </div>
-              <button class="component-add-btn" data-component="footer" title="Add Footer to Layout">+</button>
+              <button class="component-add-btn" data-component="footer" title="Add Footer" aria-label="Add Footer component">+</button>
             </div>
           </div>
 
           <div style="margin: 20px 0;"></div>
 
-          <div class="panel-title">
-            <span>🖥️</span> Display Blocks
-          </div>
+          <div class="panel-title"><span aria-hidden="true">🖥️</span> Display Blocks</div>
           <div class="component-grid">
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Sleek Split Hero</span>
-                <span class="component-desc">Headline + gradient tag + visual code mockup</span>
+                <span class="component-desc">Headline + gradient tag + code mockup</span>
               </div>
-              <button class="component-add-btn" data-component="hero" title="Add Hero to Layout">+</button>
+              <button class="component-add-btn" data-component="hero" title="Add Hero" aria-label="Add Hero component">+</button>
             </div>
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Neon Features Grid</span>
-                <span class="component-desc">3 Glowing cards with hover-scaling shapes</span>
+                <span class="component-desc">3 Glowing cards with hover states</span>
               </div>
-              <button class="component-add-btn" data-component="features" title="Add Features to Layout">+</button>
+              <button class="component-add-btn" data-component="features" title="Add Features" aria-label="Add Features component">+</button>
             </div>
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Metric Milestones</span>
                 <span class="component-desc">Performance uptime counters grid</span>
               </div>
-              <button class="component-add-btn" data-component="stats" title="Add Metrics to Layout">+</button>
+              <button class="component-add-btn" data-component="stats" title="Add Metrics" aria-label="Add Stats component">+</button>
             </div>
           </div>
 
           <div style="margin: 20px 0;"></div>
 
-          <div class="panel-title">
-            <span>📈</span> Conversion Modules
-          </div>
+          <div class="panel-title"><span aria-hidden="true">📈</span> Conversion Modules</div>
           <div class="component-grid">
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Sleek Pricing Columns</span>
                 <span class="component-desc">Scaling plan values with highlight ribbons</span>
               </div>
-              <button class="component-add-btn" data-component="pricing" title="Add Pricing to Layout">+</button>
+              <button class="component-add-btn" data-component="pricing" title="Add Pricing" aria-label="Add Pricing component">+</button>
             </div>
             <div class="component-card">
               <div class="component-info">
                 <span class="component-name">Frictionless Contact Form</span>
                 <span class="component-desc">Split layout with Formspree handling</span>
               </div>
-              <button class="component-add-btn" data-component="contact" title="Add Contact to Layout">+</button>
+              <button class="component-add-btn" data-component="contact" title="Add Contact" aria-label="Add Contact component">+</button>
             </div>
           </div>
         </div>
 
-        <!-- Panel 3: SEO Configuration & Contact Uplink -->
-        <div class="panel-section" id="panel-seo">
-          <div class="panel-title">
-            <span>📡</span> Core SEO Configuration
-          </div>
+        <!-- ── PANEL 3: SEO ── -->
+        <div class="panel-section" id="panel-seo" role="tabpanel" aria-labelledby="tab-seo-metadata">
+          <div class="panel-title"><span aria-hidden="true">📡</span> Core SEO Configuration</div>
           <div class="form-group">
             <label for="seo-title" class="form-label">DOCUMENT TITLE (&lt;title&gt;)</label>
-            <input type="text" id="seo-title" class="form-input" placeholder="Automated Production Page">
+            <input type="text" id="seo-title" class="form-input" placeholder="Automated Production Page" aria-label="SEO title">
           </div>
           <div class="form-group">
             <label for="seo-desc" class="form-label">META DESCRIPTION</label>
-            <input type="text" id="seo-desc" class="form-input" placeholder="Dynamic responsive layout system compiled in real-time.">
+            <input type="text" id="seo-desc" class="form-input" placeholder="Dynamic responsive layout system" aria-label="SEO description">
           </div>
           <div class="form-group">
             <label for="seo-keys" class="form-label">META KEYWORDS</label>
-            <input type="text" id="seo-keys" class="form-input" placeholder="landing page, visual creator, system">
+            <input type="text" id="seo-keys" class="form-input" placeholder="landing page, visual creator, system" aria-label="SEO keywords">
           </div>
           <div class="form-group">
             <label for="seo-lang" class="form-label">DOCUMENT LANGUAGE</label>
-            <input type="text" id="seo-lang" class="form-input" placeholder="en" style="width: 80px;">
+            <input type="text" id="seo-lang" class="form-input" placeholder="en" style="width: 80px;" aria-label="Document language code">
           </div>
 
-          <div style="border-top: 1px solid var(--border-glass); margin: 20px 0;"></div>
+          <div class="panel-divider"></div>
 
-          <div class="panel-title">
-            <span>🔑</span> Frictionless Form Integration
-          </div>
+          <div class="panel-title"><span aria-hidden="true">🔑</span> Form Integration</div>
           <div class="form-group">
             <label for="contact-email" class="form-label">FORMSPREE TARGET EMAIL / HASH</label>
-            <input type="text" id="contact-email" class="form-input" placeholder="your-hash-or-email@domain.com">
+            <input type="text" id="contact-email" class="form-input" placeholder="your-hash-or-email@domain.com" aria-label="Contact email or Formspree hash">
             <span style="font-size: 10.5px; color: var(--color-text-muted); display: block; margin-top: 6px; line-height: 1.35;">
-              *All contact forms will automatically target this credential (https://formspree.io/f/{{CONTACT_EMAIL}}).
+              Contact forms will target this credential via Formspree or mailto.
             </span>
           </div>
+        </div>
+
+        <!-- ── PANEL 4: AI Pipeline ── -->
+        <div class="panel-section" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline">
+
+          <!-- Ollama Status Bar -->
+          <div class="ollama-status-bar">
+            <div class="ollama-status-header">
+              <span class="panel-title-inline">🤖 AI Engine Status</span>
+              <button class="btn-ghost" onclick="checkOllamaStatus()" title="Refresh status" aria-label="Refresh Ollama status">↻</button>
+            </div>
+            <span id="ollama-status" class="ollama-status offline">⟳ Checking...</span>
+            <span id="ollama-models" class="ollama-models-list"></span>
+            <span class="input-hint" style="margin-top: 4px;">Run <code>scripts/setup-ollama.ps1</code> to install Ollama + models</span>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <!-- Pipeline Config -->
+          <div class="panel-title">⚡ Autonomous Pipeline</div>
+          <div class="form-group">
+            <label for="pipeline-client-url" class="form-label">CLIENT URL</label>
+            <input type="url" id="pipeline-client-url" class="form-input" placeholder="https://clientsite.com" aria-label="Pipeline client URL">
+          </div>
+          <div class="form-group">
+            <label for="pipeline-client-name" class="form-label">CLIENT NAME</label>
+            <input type="text" id="pipeline-client-name" class="form-input" placeholder="Acme Corp" aria-label="Client business name">
+          </div>
+          <div class="form-group">
+            <label for="pipeline-industry" class="form-label">INDUSTRY</label>
+            <select id="pipeline-industry" class="form-select" aria-label="Client industry">
+              <option value="default">Auto-Detect</option>
+              <option value="medical">Medical / Healthcare</option>
+              <option value="construction">Construction / Roofing</option>
+              <option value="legal">Legal / Professional</option>
+              <option value="fitness">Fitness / Gym</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <button id="pipeline-run-btn" class="btn btn-primary" style="flex: 1;" aria-label="Run full pipeline">⚡ Run Full Pipeline</button>
+            <button id="pipeline-abort-btn" class="btn btn-secondary" style="padding: 10px 14px;" aria-label="Abort pipeline">⛔</button>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <!-- Stage Status Board -->
+          <div class="panel-title">📊 Stage Status</div>
+          <div class="pipeline-stages" id="pipeline-stages-board">
+            <div class="stage-indicator stage-pending" id="stage-indicator-1">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 01 — Brand Scrape</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-1"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-1" aria-label="Run Stage 1">▶ Run</button>
+            </div>
+            <div class="stage-indicator stage-pending" id="stage-indicator-2">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 02 — Competitor Matrix</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-2"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-2" aria-label="Run Stage 2">▶ Run</button>
+            </div>
+            <div class="stage-indicator stage-pending" id="stage-indicator-3">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 03 — Culture-First Build</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-3"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-3" aria-label="Run Stage 3">▶ Run</button>
+            </div>
+            <div class="stage-indicator stage-pending" id="stage-indicator-4">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 04 — Visual Signature</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-4"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-4" aria-label="Run Stage 4">▶ Run</button>
+            </div>
+            <div class="stage-indicator stage-pending" id="stage-indicator-5">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 05 — Critique Loop</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-5"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-5" aria-label="Run Stage 5">▶ Run</button>
+            </div>
+            <div class="stage-indicator stage-pending" id="stage-indicator-6">
+              <div class="stage-header">
+                <span class="stage-dot">○</span>
+                <span class="stage-name">Stage 06 — Delivery</span>
+                <span class="stage-status-label">Pending</span>
+              </div>
+              <pre class="stage-log" id="stage-log-6"></pre>
+              <button class="btn-ghost stage-run-btn" id="stage-run-6" aria-label="Run Stage 6">▶ Run</button>
+            </div>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <!-- Competitor Matrix Display -->
+          <div class="panel-title">🏆 Competitor Matrix</div>
+          <div id="competitor-matrix-display" class="pipeline-sub-panel">
+            <p class="pipeline-empty">Awaiting Stage 02 completion...</p>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <!-- Critique Report -->
+          <div class="panel-title">🔍 Critique Report</div>
+          <div id="critique-report-display" class="pipeline-sub-panel">
+            <p class="pipeline-empty">Awaiting Stage 05 completion...</p>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <!-- Delivery -->
+          <div class="panel-title">🚀 Delivery Artifacts</div>
+          <div id="delivery-display" class="pipeline-sub-panel">
+            <p class="pipeline-empty">Awaiting Stage 06 completion...</p>
+          </div>
+
         </div>
 
       </div>
     </div>
 
-    <!-- Central Preview Canvas Workspace -->
-    <div class="canvas-container" id="workspace-canvas">
-      <!-- Toolbar Controls -->
+    <!-- ── Central Preview Canvas ── -->
+    <div class="canvas-container" id="workspace-canvas" role="main" aria-label="Design Preview Canvas">
       <div class="canvas-toolbar">
         <div style="font-size: 11px; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px; text-transform: uppercase;">
           Live Sandbox Viewport
         </div>
-        <div class="device-selectors">
-          <button class="device-btn active" data-device="desktop" title="Desktop Viewport (100% Width)">🖥️</button>
-          <button class="device-btn" data-device="tablet" title="Tablet Viewport (768px Width)">📟</button>
-          <button class="device-btn" data-device="mobile" title="Mobile Viewport (390px Width)">📱</button>
+        <div class="device-selectors" role="group" aria-label="Device viewport">
+          <button class="device-btn active" data-device="desktop" title="Desktop Viewport" aria-label="Desktop viewport">🖥️</button>
+          <button class="device-btn" data-device="tablet" title="Tablet Viewport" aria-label="Tablet viewport">📟</button>
+          <button class="device-btn" data-device="mobile" title="Mobile Viewport" aria-label="Mobile viewport">📱</button>
         </div>
-        <div>
-          <!-- Empty spacer -->
-        </div>
+        <div></div>
       </div>
 
-      <!-- Iframe Host Viewport -->
       <div class="canvas-viewport">
-        <!-- Visual Layout Empty State -->
-        <div class="empty-canvas" id="canvas-empty-state">
-          <div class="empty-canvas-icon">▲</div>
+        <div class="empty-canvas" id="canvas-empty-state" role="status">
+          <div class="empty-canvas-icon" aria-hidden="true">▲</div>
           <div class="empty-canvas-title">System Canvas Empty</div>
-          <div class="empty-canvas-desc">Select an industry preset above or insert modular components from the left panels to initiate visual layout compilation.</div>
+          <div class="empty-canvas-desc">Select an industry preset or run the ⚡ AI Pipeline to auto-generate your layout.</div>
         </div>
-        
-        <!-- Premium Isolated Iframe Sandbox -->
         <div class="preview-wrapper desktop" id="viewport-wrapper">
-          <iframe id="preview-iframe" title="Dynamic Client Canvas Viewport"></iframe>
+          <iframe id="preview-iframe" title="Dynamic Client Canvas Viewport" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
       </div>
 
-      <!-- Collapsible Code Drawer Widget -->
-      <div class="code-viewer-drawer" id="code-drawer">
+      <!-- Collapsible Code Drawer -->
+      <div class="code-viewer-drawer" id="code-drawer" role="region" aria-label="Compiled Code Viewer">
         <div class="code-viewer-header">
-          <div class="code-tabs">
-            <button class="code-tab active" data-format="html">dist/index.html</button>
-            <button class="code-tab" data-format="css">dist/css/styles.css</button>
+          <div class="code-tabs" role="tablist">
+            <button class="code-tab active" data-format="html" role="tab">dist/index.html</button>
+            <button class="code-tab" data-format="css" role="tab">dist/css/styles.css</button>
           </div>
           <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" id="copy-code-btn" style="padding: 4px 12px; font-size: 11.5px;">
+            <button class="btn btn-secondary" id="copy-code-btn" style="padding: 4px 12px; font-size: 11.5px;" aria-label="Copy code to clipboard">
               📋 Copy Code Packet
             </button>
           </div>
         </div>
         <div class="code-body">
-          <pre id="code-viewer-html" class="code-container"></pre>
-          <pre id="code-viewer-css" class="code-container" style="display: none;"></pre>
+          <pre id="code-viewer-html" class="code-container" role="textbox" aria-readonly="true" aria-label="HTML output"></pre>
+          <pre id="code-viewer-css" class="code-container" style="display: none;" role="textbox" aria-readonly="true" aria-label="CSS output"></pre>
         </div>
       </div>
-
     </div>
 
-    <!-- Active Reordering Layout Drawer Panel (Right) -->
-    <div class="layout-panel" id="layout-matrix-sidebar">
+    <!-- ── Right Layout Matrix Panel ── -->
+    <div class="layout-panel" id="layout-matrix-sidebar" role="complementary" aria-label="Layout Matrix">
       <div class="layout-header">Active Canvas Matrix</div>
-      <div class="layout-list" id="layout-items-list">
-        <!-- Reordering Nodes dynamically loaded from state -->
+      <div class="layout-list" id="layout-items-list" role="list">
+        <!-- Dynamically populated -->
       </div>
     </div>
 
   </main>
 
-  <!-- JavaScript Libraries & Orchestrators Load Chain -->
-  <script src="js/components.js"></script>
-  <script src="js/templates.js"></script>
-  <script src="js/exporter.js"></script>
-  <script src="js/app.js"></script>
+  <!-- ── JavaScript Load Chain (FIX #11: defer on all scripts) ── -->
+  <script src="js/components.js" defer></script>
+  <script src="js/templates.js" defer></script>
+  <script src="js/manifest.js" defer></script>
+  <script src="js/motion-library.js" defer></script>
+  <script src="js/ai-engine.js" defer></script>
+  <script src="js/critique-engine.js" defer></script>
+  <script src="js/b2b-pitch.js" defer></script>
+  <script src="js/pipeline-ui.js" defer></script>
+  <script src="js/pipeline.js" defer></script>
+  <script src="js/exporter.js" defer></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>

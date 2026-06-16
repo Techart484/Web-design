@@ -1,20 +1,15 @@
-// Web Design Automation Factory - Unified State & UI Orchestrator
-// Coordinates settings, visual canvas updates, isolated iframe, and code compilations.
+// Web Design Automation Factory — Unified State & UI Orchestrator (FIXED + EXTENDED)
+// v2.0 — Bug fixes, Style Words wiring, Toast system, Pipeline integration
 
 // Global application state
 const AppState = {
-  // SEO & General Metadata
   seoTitle: 'Aura Design Automation Factory',
   seoDescription: 'High-fidelity, responsive single-page visual layout builder and design system compiler.',
   seoKeywords: 'web design, automation, low-code, design system, html export',
   seoLanguage: 'en',
   contactEmail: 'contact@domain.com',
-
-  // Client URL & Brand Scanner parameters
   clientUrl: '',
   selectedPresetId: 'saas',
-
-  // Global Design Tokens
   themePrimary: '#8b5cf6',
   themeSecondary: '#f43f5e',
   themeAccent: '#06b6d4',
@@ -22,46 +17,26 @@ const AppState = {
   containerWidth: 1200,
   borderRadius: 12,
   fontFamily: 'Outfit',
-
-  // Active layout structure matrix (tracks instances of components in the canvas)
-  // Format: { id: string, componentId: string }
   activeSections: []
 };
 
 // Fallback matrices for industries
 const IndustryFallbacks = {
-  construction: {
-    primary: '#1E3A8A', // Deep Blue
-    accent: '#F97316',  // Safety Orange
-    secondary: '#1e293b',
-    bg: '#030712'
-  },
-  medical: {
-    primary: '#0D9488', // Teal
-    accent: '#38BDF8',  // Sky Blue
-    secondary: '#0f172a',
-    bg: '#040b0e'
-  },
-  legal: {
-    primary: '#1E293B', // Slate
-    accent: '#D97706',  // Amber
-    secondary: '#475569',
-    bg: '#070a13'
-  },
-  fitness: {
-    primary: '#0f0f10', // Charcoal Dark
-    accent: '#DC2626',  // Aggressive Red
-    secondary: '#1c1917',
-    bg: '#080808'
-  }
+  construction: { primary: '#1E3A8A', accent: '#F97316', secondary: '#1e293b', bg: '#030712' },
+  medical:      { primary: '#0D9488', accent: '#38BDF8', secondary: '#0f172a', bg: '#040b0e' },
+  legal:        { primary: '#1E293B', accent: '#D97706', secondary: '#475569', bg: '#070a13' },
+  fitness:      { primary: '#0f0f10', accent: '#DC2626', secondary: '#1c1917', bg: '#080808' },
+  default:      { primary: '#8b5cf6', accent: '#06b6d4', secondary: '#f43f5e', bg: '#06050b' }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   initDashboardUI();
   loadTemplatePreset('saas');
+  MotionLib.init();
+  PipelineUI._container = document.getElementById('toast-container');
 });
 
-// Initialize dashboard event anchors
+// ── Initialize Dashboard ──────────────────────────────────────
 function initDashboardUI() {
   // 1. Sidebar Tab Controls
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -69,14 +44,14 @@ function initDashboardUI() {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      
       const targetPanel = btn.getAttribute('data-tab');
       document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
-      document.getElementById(`panel-${targetPanel}`).classList.add('active');
+      const panel = document.getElementById(`panel-${targetPanel}`);
+      if (panel) panel.classList.add('active');
     });
   });
 
-  // 2. Real-Time Inputs Sync
+  // 2. Real-Time Input Sync (FIX #1: removed redundant if/else)
   setupStateInputListener('seo-title', 'seoTitle');
   setupStateInputListener('seo-desc', 'seoDescription');
   setupStateInputListener('seo-keys', 'seoKeywords');
@@ -85,13 +60,13 @@ function initDashboardUI() {
   setupStateInputListener('container-width', 'containerWidth', parseInt, true);
   setupStateInputListener('border-radius', 'borderRadius', parseInt, true);
 
-  // Custom visual color pickers & manual hex syncer
+  // Color pickers
   setupColorPicker('color-primary', 'themePrimary');
   setupColorPicker('color-secondary', 'themeSecondary');
   setupColorPicker('color-accent', 'themeAccent');
   setupColorPicker('color-bg', 'themeBg');
 
-  // Font Family sync
+  // Font Family
   const fontSelect = document.getElementById('font-family');
   if (fontSelect) {
     fontSelect.addEventListener('change', (e) => {
@@ -101,29 +76,60 @@ function initDashboardUI() {
     });
   }
 
-  // 3. Preset Templates Dropdown Selector
+  // 3. Preset Selector
   const presetSelect = document.getElementById('preset-selector');
   if (presetSelect) {
-    presetSelect.addEventListener('change', (e) => {
-      loadTemplatePreset(e.target.value);
-    });
+    presetSelect.addEventListener('change', (e) => loadTemplatePreset(e.target.value));
   }
 
-  // 4. Double-Sided Input Token Brand Color Scanner trigger
+  // 4. Dual Tab Switch (URL / Style Words)
+  const dualTabs = document.querySelectorAll('.dual-tab');
+  dualTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      dualTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const pane = tab.getAttribute('data-input');
+      document.querySelectorAll('.dual-input-pane').forEach(p => p.classList.remove('active'));
+      const targetPane = document.getElementById(`dual-pane-${pane}`);
+      if (targetPane) targetPane.classList.add('active');
+    });
+  });
+
+  // 5. Brand Scan Button (FIX #2: no more alert())
   const scanBtn = document.getElementById('brand-scan-btn');
   const urlInput = document.getElementById('client-url');
   if (scanBtn && urlInput) {
     scanBtn.addEventListener('click', () => {
       const urlVal = urlInput.value.trim();
       if (!urlVal) {
-        alert('Please input a valid client URL to execute the brand scanning matrix.');
+        Toast.show('Please enter a valid client URL first', 'warning');
         return;
       }
       simulateBrandScan(urlVal);
     });
   }
 
-  // 5. Section Adder Triggers (from library grid)
+  // 6. Style Words Apply Button (FIX: was completely unwired)
+  const styleWordsBtn = document.getElementById('style-words-apply-btn');
+  const styleWordsClear = document.getElementById('style-words-clear-btn');
+  const styleWordsInput = document.getElementById('style-words');
+
+  if (styleWordsBtn) {
+    styleWordsBtn.addEventListener('click', async () => {
+      const words = styleWordsInput ? styleWordsInput.value.trim() : '';
+      if (!words) { Toast.show('Enter style descriptor words first', 'warning'); return; }
+      await applyStyleWords(words);
+    });
+  }
+  if (styleWordsClear) {
+    styleWordsClear.addEventListener('click', () => {
+      if (styleWordsInput) styleWordsInput.value = '';
+      const tagsDisplay = document.getElementById('style-tags-display');
+      if (tagsDisplay) tagsDisplay.style.display = 'none';
+    });
+  }
+
+  // 7. Component Add Buttons
   const addButtons = document.querySelectorAll('.component-add-btn');
   addButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -132,118 +138,217 @@ function initDashboardUI() {
       addCanvasSection(compId);
     });
   });
-
-  const cardClickables = document.querySelectorAll('.component-card');
-  cardClickables.forEach(card => {
+  document.querySelectorAll('.component-card').forEach(card => {
     card.addEventListener('click', () => {
       const btn = card.querySelector('.component-add-btn');
-      if (btn) {
-        const compId = btn.getAttribute('data-component');
-        addCanvasSection(compId);
-      }
+      if (btn) addCanvasSection(btn.getAttribute('data-component'));
     });
   });
 
-  // 6. Device Viewport Toggles
+  // 8. Device Viewport Toggles
   const deviceBtns = document.querySelectorAll('.device-btn');
   const viewportWrapper = document.getElementById('viewport-wrapper');
   deviceBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       deviceBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      
       const device = btn.getAttribute('data-device');
-      viewportWrapper.className = `preview-wrapper ${device}`;
+      if (viewportWrapper) viewportWrapper.className = `preview-wrapper ${device}`;
     });
   });
 
-  // 7. Global Header Action Controls
+  // 9. Clear Canvas
   const clearBtn = document.getElementById('clear-canvas-btn');
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
-      if (confirm('Are you sure you want to clear all layout sections from the canvas?')) {
+      if (!AppState.activeSections.length) { Toast.show('Canvas is already empty', 'info'); return; }
+      // Custom confirm (no browser alert)
+      showConfirm('Clear all layout sections from the canvas?', () => {
         AppState.activeSections = [];
         renderCanvas();
         updateLayoutList();
-      }
+        Toast.show('Canvas cleared', 'info');
+      });
     });
   }
 
-  // 8. ZIP Download Trigger
+  // 10. ZIP Download
   const downloadBtn = document.getElementById('download-zip-btn');
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => {
-      Exporter.downloadProductionZip(AppState);
-    });
+    downloadBtn.addEventListener('click', () => Exporter.downloadProductionZip(AppState));
   }
 
-  // 9. Code Viewer Drawer Toggler
+  // 11. Code Drawer Toggle
   const toggleCodeBtn = document.getElementById('toggle-code-drawer');
   const codeDrawer = document.getElementById('code-drawer');
   if (toggleCodeBtn && codeDrawer) {
     toggleCodeBtn.addEventListener('click', () => {
       const isOpen = codeDrawer.classList.toggle('open');
       toggleCodeBtn.textContent = isOpen ? '✕ Collapse Workspace Code' : '🖨️ View Compiled Code';
-      if (isOpen) {
-        updateCodeViewers();
-      }
+      if (isOpen) updateCodeViewers();
     });
   }
 
-  // Code Tab switching
+  // 12. Code Tabs
   const codeTabs = document.querySelectorAll('.code-tab');
   codeTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       codeTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      
       const format = tab.getAttribute('data-format');
       document.querySelectorAll('.code-container').forEach(c => c.style.display = 'none');
-      document.getElementById(`code-viewer-${format}`).style.display = 'block';
+      const target = document.getElementById(`code-viewer-${format}`);
+      if (target) target.style.display = 'block';
     });
   });
 
-  // Copy code utility
+  // 13. Copy Code
   const copyBtn = document.getElementById('copy-code-btn');
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
       const activeTab = document.querySelector('.code-tab.active');
       const format = activeTab ? activeTab.getAttribute('data-format') : 'html';
       const codeNode = document.getElementById(`code-viewer-${format}`);
-      
       if (codeNode) {
         navigator.clipboard.writeText(codeNode.textContent)
           .then(() => {
-            const origText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '✓ Copied Packet!';
-            setTimeout(() => copyBtn.innerHTML = origText, 2000);
+            const orig = copyBtn.innerHTML;
+            copyBtn.innerHTML = '✓ Copied!';
+            setTimeout(() => copyBtn.innerHTML = orig, 2000);
           })
-          .catch(err => alert('Failed to execute clipboard copy sequence: ' + err));
+          .catch(() => Toast.show('Clipboard copy failed — try selecting text manually', 'error'));
       }
     });
   }
+
+  // 14. Pipeline Tab Controls
+  initPipelinePanel();
+
+  // 15. Ollama status check
+  checkOllamaStatus();
 }
 
-// Helpers: Data Sync Connectors
+// ── Pipeline Panel Initializer ────────────────────────────────
+function initPipelinePanel() {
+  const runBtn = document.getElementById('pipeline-run-btn');
+  const abortBtn = document.getElementById('pipeline-abort-btn');
+  const urlInput = document.getElementById('pipeline-client-url');
+  const nameInput = document.getElementById('pipeline-client-name');
+  const industrySelect = document.getElementById('pipeline-industry');
+
+  if (runBtn) {
+    runBtn.addEventListener('click', () => {
+      const url = urlInput ? urlInput.value.trim() : '';
+      const name = nameInput ? nameInput.value.trim() : '';
+      const industry = industrySelect ? industrySelect.value : 'default';
+      if (!url) { Toast.show('Enter a client URL to start the pipeline', 'warning'); return; }
+      Pipeline.run(url, name, industry);
+    });
+  }
+  if (abortBtn) {
+    abortBtn.addEventListener('click', () => Pipeline.abort());
+  }
+
+  // Stage jump buttons
+  [1, 2, 3, 4, 5, 6].forEach(n => {
+    const btn = document.getElementById(`stage-run-${n}`);
+    if (btn) btn.addEventListener('click', () => Pipeline.runStage(n));
+  });
+}
+
+// ── Ollama Status Check ───────────────────────────────────────
+async function checkOllamaStatus() {
+  const indicator = document.getElementById('ollama-status');
+  if (!indicator) return;
+  indicator.textContent = '⟳ Checking...';
+  try {
+    const health = await AiEngine.checkHealth();
+    if (health.online) {
+      indicator.textContent = `✓ Ollama Online — ${health.models.length} model(s)`;
+      indicator.className = 'ollama-status online';
+      const details = document.getElementById('ollama-models');
+      if (details) details.textContent = health.models.slice(0, 5).join(', ') || 'No models pulled';
+    } else {
+      indicator.textContent = '✗ Ollama Offline';
+      indicator.className = 'ollama-status offline';
+    }
+  } catch (e) {
+    indicator.textContent = '✗ Ollama Offline';
+    indicator.className = 'ollama-status offline';
+  }
+}
+
+// ── Style Words → Theme (FIX: was entirely unwired) ───────────
+async function applyStyleWords(words) {
+  const btn = document.getElementById('style-words-apply-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Mapping...'; }
+
+  // Update tags display
+  const tagsDisplay = document.getElementById('style-tags-display');
+  const tagsList = document.getElementById('style-tags-list');
+  if (tagsDisplay && tagsList) {
+    tagsDisplay.style.display = 'flex';
+    tagsList.innerHTML = words.split(',').map(w => `<span class="style-tag">${w.trim()}</span>`).join('');
+  }
+
+  let theme = null;
+
+  // Try AI first
+  const health = await AiEngine.checkHealth().catch(() => ({ online: false }));
+  if (health.online) {
+    Toast.show('🎨 Sending style words to AI...', 'info', 2000);
+    theme = await AiEngine.styleWordsToTheme(words).catch(() => null);
+  }
+
+  // Fallback: local keyword mapping
+  if (!theme) {
+    theme = mapStyleWordsToTheme(words);
+  }
+
+  if (theme) {
+    AppState.themePrimary   = theme.primary   || AppState.themePrimary;
+    AppState.themeSecondary = theme.secondary  || AppState.themeSecondary;
+    AppState.themeAccent    = theme.accent     || AppState.themeAccent;
+    AppState.themeBg        = theme.bg         || AppState.themeBg;
+    if (theme.font) AppState.fontFamily = theme.font;
+    if (theme.border_radius) AppState.borderRadius = parseInt(theme.border_radius);
+
+    updateFormControlsFromState();
+    updateIframeStyles();
+    updateCodeViewers();
+    Toast.show(`✓ Style words applied: ${words.substring(0, 40)}`, 'success');
+  } else {
+    Toast.show('Could not map style words — try more specific terms', 'warning');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Apply Style Words'; }
+}
+
+// Local keyword→palette fallback for style words
+function mapStyleWordsToTheme(words) {
+  const w = words.toLowerCase();
+  if (/teal|medical|clean|health/.test(w)) return IndustryFallbacks.medical;
+  if (/blue|corporate|trust|law/.test(w)) return IndustryFallbacks.legal;
+  if (/red|aggressive|fitness|gym/.test(w)) return IndustryFallbacks.fitness;
+  if (/orange|construct|build/.test(w)) return IndustryFallbacks.construction;
+  if (/purple|violet|saas|tech/.test(w)) return { primary: '#8b5cf6', secondary: '#f43f5e', accent: '#06b6d4', bg: '#06050b' };
+  if (/rose|pink|fashion|beauty/.test(w)) return { primary: '#ec4899', secondary: '#8b5cf6', accent: '#f59e0b', bg: '#09050c' };
+  if (/green|eco|nature|sustain/.test(w)) return { primary: '#10b981', secondary: '#0d9488', accent: '#84cc16', bg: '#030a06' };
+  if (/gold|luxury|premium|elite/.test(w)) return { primary: '#d4a017', secondary: '#92400e', accent: '#fbbf24', bg: '#0a0800' };
+  return null;
+}
+
+// ── Helpers: Data Sync ────────────────────────────────────────
 function setupStateInputListener(elemId, stateKey, parser = null, isStyleTrigger = false) {
   const elem = document.getElementById(elemId);
   if (!elem) return;
-
-  // Sync initial state value to element
-  if (elem.type === 'number') {
-    elem.value = AppState[stateKey];
-  } else {
-    elem.value = AppState[stateKey];
-  }
-
+  // FIX #1: Unified initialization (removed redundant if/else)
+  elem.value = AppState[stateKey];
   elem.addEventListener('input', (e) => {
     let val = e.target.value;
     if (parser) val = parser(val);
     AppState[stateKey] = val;
-
-    if (isStyleTrigger) {
-      updateIframeStyles();
-    }
+    if (isStyleTrigger) updateIframeStyles();
     updateCodeViewers();
   });
 }
@@ -251,15 +356,11 @@ function setupStateInputListener(elemId, stateKey, parser = null, isStyleTrigger
 function setupColorPicker(colorId, stateKey) {
   const wrapper = document.getElementById(`${colorId}-wrapper`);
   if (!wrapper) return;
-
   const picker = wrapper.querySelector('.color-picker');
   const hexText = wrapper.querySelector('.color-hex-text');
-  
   if (picker && hexText) {
-    // Sync initial state values
     picker.value = AppState[stateKey];
     hexText.textContent = AppState[stateKey];
-
     picker.addEventListener('input', (e) => {
       const val = e.target.value;
       AppState[stateKey] = val;
@@ -267,7 +368,6 @@ function setupColorPicker(colorId, stateKey) {
       updateIframeStyles();
       updateCodeViewers();
     });
-
     hexText.addEventListener('click', () => {
       const newHex = prompt(`Modify HEX for ${stateKey.replace('theme', '')}:`, AppState[stateKey]);
       if (newHex && /^#[A-Fa-f0-9]{6}$/.test(newHex)) {
@@ -281,50 +381,36 @@ function setupColorPicker(colorId, stateKey) {
   }
 }
 
-// Loads structural presets and theme configurations into memory
 function loadTemplatePreset(presetId) {
   const template = WebTemplates[presetId];
   if (!template) return;
-
   AppState.selectedPresetId = presetId;
-  
-  // Load standard themes or fallback to specific industry matrix values if relevant
   if (template.industry && IndustryFallbacks[template.industry]) {
-    const fallback = IndustryFallbacks[template.industry];
-    AppState.themePrimary = fallback.primary;
-    AppState.themeAccent = fallback.accent;
-    AppState.themeSecondary = fallback.secondary;
-    AppState.themeBg = fallback.bg;
+    const fb = IndustryFallbacks[template.industry];
+    AppState.themePrimary = fb.primary;
+    AppState.themeAccent = fb.accent;
+    AppState.themeSecondary = fb.secondary;
+    AppState.themeBg = fb.bg;
   } else {
     AppState.themePrimary = template.theme.primary;
     AppState.themeAccent = template.theme.accent;
     AppState.themeSecondary = template.theme.secondary;
     AppState.themeBg = template.theme.bg;
   }
-
   AppState.containerWidth = parseInt(template.theme.container);
   AppState.borderRadius = parseInt(template.theme.radius);
   AppState.fontFamily = template.theme.font;
-
-  // Re-sync visual UI inputs
   updateFormControlsFromState();
-
-  // Load layout matrix arrangement
   AppState.activeSections = template.sections.map(sectionId => ({
     id: generateUUID(),
     componentId: sectionId
   }));
-
   renderCanvas();
   updateLayoutList();
 }
 
 function updateFormControlsFromState() {
-  const setInputValue = (id, val) => {
-    const elem = document.getElementById(id);
-    if (elem) elem.value = val;
-  };
-
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   const syncColor = (colorId, val) => {
     const wrapper = document.getElementById(`${colorId}-wrapper`);
     if (wrapper) {
@@ -334,25 +420,21 @@ function updateFormControlsFromState() {
       if (hexText) hexText.textContent = val;
     }
   };
-
-  setInputValue('container-width', AppState.containerWidth);
-  setInputValue('border-radius', AppState.borderRadius);
-  setInputValue('font-family', AppState.fontFamily);
-  
+  setVal('container-width', AppState.containerWidth);
+  setVal('border-radius', AppState.borderRadius);
+  setVal('font-family', AppState.fontFamily);
   syncColor('color-primary', AppState.themePrimary);
   syncColor('color-secondary', AppState.themeSecondary);
   syncColor('color-accent', AppState.themeAccent);
   syncColor('color-bg', AppState.themeBg);
 }
 
-// Brand scanning simulator using client URLs
+// FIX #15: Brand scan now calls loadTemplatePreset to also update sections
 function simulateBrandScan(url) {
   const scanBtn = document.getElementById('brand-scan-btn');
-  const origText = scanBtn.textContent;
-  scanBtn.disabled = true;
-  scanBtn.textContent = '⚡ Parsing Brand Vectors...';
+  const origText = scanBtn ? scanBtn.textContent : '';
+  if (scanBtn) { scanBtn.disabled = true; scanBtn.textContent = '⚡ Parsing Brand Vectors...'; }
 
-  // Extract simulated hostname to use for mock algorithm hashes
   let domain = 'factory';
   try {
     const parsed = new URL(url.includes('://') ? url : 'http://' + url);
@@ -360,60 +442,47 @@ function simulateBrandScan(url) {
   } catch (e) {}
 
   setTimeout(() => {
-    // Determine a fallback industry matching domain patterns, or create high-quality hashes
     let generatedTheme;
+    let presetId;
 
-    if (domain.includes('clinic') || domain.includes('dental') || domain.includes('health') || domain.includes('med')) {
-      generatedTheme = IndustryFallbacks.medical;
-      AppState.selectedPresetId = 'medical';
-      document.getElementById('preset-selector').value = 'medical';
-    } else if (domain.includes('construct') || domain.includes('roof') || domain.includes('build')) {
-      generatedTheme = IndustryFallbacks.construction;
-      AppState.selectedPresetId = 'construction';
-      document.getElementById('preset-selector').value = 'construction';
-    } else if (domain.includes('law') || domain.includes('legal') || domain.includes('partner') || domain.includes('tax')) {
-      generatedTheme = IndustryFallbacks.legal;
-      AppState.selectedPresetId = 'legal';
-      document.getElementById('preset-selector').value = 'legal';
-    } else if (domain.includes('fit') || domain.includes('gym') || domain.includes('crossfit') || domain.includes('sport')) {
-      generatedTheme = IndustryFallbacks.fitness;
-      AppState.selectedPresetId = 'fitness';
-      document.getElementById('preset-selector').value = 'fitness';
+    if (/clinic|dental|health|med/.test(domain)) {
+      generatedTheme = IndustryFallbacks.medical; presetId = 'medical';
+    } else if (/construct|roof|build/.test(domain)) {
+      generatedTheme = IndustryFallbacks.construction; presetId = 'construction';
+    } else if (/law|legal|partner|tax/.test(domain)) {
+      generatedTheme = IndustryFallbacks.legal; presetId = 'legal';
+    } else if (/fit|gym|crossfit|sport/.test(domain)) {
+      generatedTheme = IndustryFallbacks.fitness; presetId = 'fitness';
     } else {
-      // Standard SaaS default styling mapping
-      generatedTheme = {
-        primary: '#7c3aed', // Classic Violet
-        secondary: '#db2777', // Magenta
-        accent: '#0284c7', // Sky Accent
-        bg: '#0b0f19'
-      };
-      AppState.selectedPresetId = 'saas';
-      document.getElementById('preset-selector').value = 'saas';
+      generatedTheme = { primary: '#7c3aed', secondary: '#db2777', accent: '#0284c7', bg: '#0b0f19' };
+      presetId = 'saas';
     }
 
+    // FIX #15: Also reload the template sections (not just colors)
     AppState.themePrimary = generatedTheme.primary;
     AppState.themeAccent = generatedTheme.accent;
     AppState.themeSecondary = generatedTheme.secondary;
     AppState.themeBg = generatedTheme.bg;
 
+    const presetSelect = document.getElementById('preset-selector');
+    if (presetSelect) presetSelect.value = presetId;
+    loadTemplatePreset(presetId);
+
     updateFormControlsFromState();
     updateIframeStyles();
     updateCodeViewers();
 
-    scanBtn.disabled = false;
-    scanBtn.textContent = '✓ Scan Finished!';
-    setTimeout(() => scanBtn.textContent = origText, 2500);
+    if (scanBtn) { scanBtn.disabled = false; scanBtn.textContent = '✓ Scan Done!'; }
+    setTimeout(() => { if (scanBtn) scanBtn.textContent = origText; }, 2500);
 
-    alert(`Successfully completed client Brand Scan for "${domain}"!\nDominant colors extracted. Applied presets corresponding to category.`);
+    // FIX #2: Toast instead of alert
+    Toast.show(`✓ Brand scan for "${domain}" complete — ${presetId} preset applied`, 'success');
   }, 1800);
 }
 
-// Visual layout matrix builder controls
+// ── Canvas ────────────────────────────────────────────────────
 function addCanvasSection(compId) {
-  AppState.activeSections.push({
-    id: generateUUID(),
-    componentId: compId
-  });
+  AppState.activeSections.push({ id: generateUUID(), componentId: compId });
   renderCanvas();
   updateLayoutList();
 }
@@ -427,15 +496,11 @@ function removeCanvasSection(id) {
 function moveSection(id, direction) {
   const index = AppState.activeSections.findIndex(s => s.id === id);
   if (index === -1) return;
-
   const targetIndex = index + direction;
   if (targetIndex < 0 || targetIndex >= AppState.activeSections.length) return;
-
-  // Swap locations in the tracking matrix
   const temp = AppState.activeSections[index];
   AppState.activeSections[index] = AppState.activeSections[targetIndex];
   AppState.activeSections[targetIndex] = temp;
-
   renderCanvas();
   updateLayoutList();
 }
@@ -443,24 +508,16 @@ function moveSection(id, direction) {
 function cloneSection(id) {
   const index = AppState.activeSections.findIndex(s => s.id === id);
   if (index === -1) return;
-
-  const clone = {
-    id: generateUUID(),
-    componentId: AppState.activeSections[index].componentId
-  };
-
+  const clone = { id: generateUUID(), componentId: AppState.activeSections[index].componentId };
   AppState.activeSections.splice(index + 1, 0, clone);
   renderCanvas();
   updateLayoutList();
 }
 
-// --------------------------------------------------------------------------
-// Visual Canvas Render Execution Loop (Dynamic Iframe injection)
-// --------------------------------------------------------------------------
+// ── Canvas Render (FIX #6: iframe race condition fixed) ───────
 function renderCanvas() {
   const iframe = document.getElementById('preview-iframe');
   const emptyState = document.getElementById('canvas-empty-state');
-  
   if (!iframe) return;
 
   if (AppState.activeSections.length === 0) {
@@ -472,47 +529,40 @@ function renderCanvas() {
   iframe.style.display = 'block';
   if (emptyState) emptyState.style.display = 'none';
 
-  // Package index.html content natively
-  const compiled = Exporter.compileWorkspace(AppState);
+  const currentStructureSig = AppState.activeSections.map(s => s.componentId).join(',');
+  const loadedSig = iframe.getAttribute('data-structure-sig');
 
-  // To prevent the full page flickering that breaks high-fidelity customization flow:
-  // We can write the initial structure directly using document.write,
-  // but only when we change sections structure. If it is already loaded, 
-  // we do NOT reload the document, we just perform state style overrides!
-  const currentStructureSignature = AppState.activeSections.map(s => s.componentId).join(',');
-  const loadedSignature = iframe.getAttribute('data-structure-sig');
+  if (currentStructureSig !== loadedSig) {
+    // FIX #6: Only call updateIframeStyles() INSIDE onload, not before
+    iframe.setAttribute('data-structure-sig', currentStructureSig);
 
-  if (currentStructureSignature !== loadedSignature) {
+    iframe.onload = () => {
+      updateIframeStyles();
+      // Inject motion library into iframe
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      if (iframeDoc) MotionLib.applyToCanvas(iframeDoc);
+    };
+
+    const compiled = Exporter.compileWorkspace(AppState);
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
     iframeDoc.open();
     iframeDoc.write(compiled.html);
     iframeDoc.close();
-
-    // Inject temporary styles immediately
-    iframe.setAttribute('data-structure-sig', currentStructureSignature);
-    
-    // Wire up events inside the preview canvas if needed (scrolling behaviors)
-    iframe.onload = () => {
-      updateIframeStyles();
-    };
+  } else {
+    // Structure unchanged — safe to update styles directly
+    updateIframeStyles();
   }
 
-  // Update layout styles via the Bridge to avoid flashes
-  updateIframeStyles();
   updateCodeViewers();
 }
 
-// Dynamic CSS Bridge directly modifying iframe root elements
+// FIX #6: updateIframeStyles doesn't need to call renderCanvas — just updates CSS vars
 function updateIframeStyles() {
   const iframe = document.getElementById('preview-iframe');
   if (!iframe) return;
-
   const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
   if (!iframeDoc || !iframeDoc.documentElement) return;
-
   const root = iframeDoc.documentElement;
-  
-  // Set properties on root element dynamically without any visual flicker
   root.style.setProperty('--color-primary', AppState.themePrimary);
   root.style.setProperty('--color-primary-glow', Exporter.hexToRgba(AppState.themePrimary, 0.25));
   root.style.setProperty('--color-secondary', AppState.themeSecondary);
@@ -523,28 +573,20 @@ function updateIframeStyles() {
   root.style.setProperty('--container-width', AppState.containerWidth + 'px');
   root.style.setProperty('--border-radius', AppState.borderRadius + 'px');
   root.style.setProperty('--font-family', `'${AppState.fontFamily}', sans-serif`);
-  
-  // Force re-scoping and style repaint checks
   const body = iframeDoc.body;
-  if (body) {
-    body.style.backgroundColor = AppState.themeBg;
-  }
+  if (body) body.style.backgroundColor = AppState.themeBg;
 }
 
-// Update layouts listing on the right panel
 function updateLayoutList() {
   const container = document.getElementById('layout-items-list');
   if (!container) return;
-
   container.innerHTML = '';
 
   AppState.activeSections.forEach((section, index) => {
     const comp = WebComponents[section.componentId];
     if (!comp) return;
-
     const isFirst = index === 0;
     const isLast = index === AppState.activeSections.length - 1;
-
     const item = document.createElement('div');
     item.className = 'layout-item';
     item.innerHTML = `
@@ -562,31 +604,52 @@ function updateLayoutList() {
     container.appendChild(item);
   });
 
-  // Make controller methods globally accessible for HTML button anchor actions
   window.moveSection = moveSection;
   window.cloneSection = cloneSection;
   window.removeCanvasSection = removeCanvasSection;
 }
 
-// Update syntax elements in code drawers
 function updateCodeViewers() {
   const codeDrawer = document.getElementById('code-drawer');
   if (!codeDrawer || !codeDrawer.classList.contains('open')) return;
-
   const { html, css } = Exporter.compileWorkspace(AppState);
-
   const htmlNode = document.getElementById('code-viewer-html');
   const cssNode = document.getElementById('code-viewer-css');
-
   if (htmlNode) htmlNode.textContent = html;
   if (cssNode) cssNode.textContent = css;
 }
 
-// Helper: UUID Generator for structural tracking
+// ── Custom Confirm Dialog (replaces window.confirm) ───────────
+function showConfirm(message, onConfirm) {
+  const existing = document.getElementById('custom-confirm-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'custom-confirm-modal';
+  modal.className = 'confirm-modal-overlay';
+  modal.innerHTML = `
+    <div class="confirm-modal">
+      <p class="confirm-message">${message}</p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-primary" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  requestAnimationFrame(() => modal.classList.add('confirm-visible'));
+
+  const close = () => { modal.classList.remove('confirm-visible'); setTimeout(() => modal.remove(), 250); };
+  modal.querySelector('#confirm-ok').addEventListener('click', () => { close(); onConfirm(); });
+  modal.querySelector('#confirm-cancel').addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+}
+
+// FIX #7: Correct UUIDv4 generator
 function generateUUID() {
-  return 'sect-xxxx-4xxx-yxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }

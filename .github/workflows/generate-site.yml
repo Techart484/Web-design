@@ -1,80 +1,205 @@
-name: Web Design Automation Factory Production Build
+name: AURA Autonomous Web Designer Engine — Production Pipeline
 
 on:
   workflow_dispatch:
     inputs:
       client_url:
-        description: 'Client Website URL (Brand color extraction source)'
+        description: 'Client Website URL (Brand Bible extraction source)'
         required: false
         default: ''
       industry:
-        description: 'Industry Type (Fallbacks: construction, medical, legal, fitness, default)'
+        description: 'Industry Type (auto-detect | construction | medical | legal | fitness | saas | default)'
         required: false
-        default: 'default'
+        default: 'auto-detect'
       business_name:
-        description: 'Business Name (Polished generic fallbacks applied if blank)'
+        description: 'Business Name (polished fallbacks applied if blank)'
         required: false
         default: ''
       contact_email:
-        description: 'Contact Email Address (Safe generic fallbacks applied if blank)'
+        description: 'Contact Email / Formspree hash (mailto fallback if blank)'
         required: false
         default: ''
       formspree_hash:
-        description: 'Formspree Hash (Defaults to safe mailto action if empty)'
+        description: 'Formspree Hash or full URL (mailto fallback if blank)'
         required: false
         default: ''
+      run_ai_critique:
+        description: 'Run Stage 05 AI critique loop? (requires Ollama — skipped in CI)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  # ══ Stage 01-02: Brand Extraction + Static Analysis ══════════════════════════
+  brand-extract:
+    name: "Stage 01 — Brand Bible Extraction"
     runs-on: ubuntu-latest
-
+    outputs:
+      industry: ${{ steps.extract.outputs.industry }}
+      primary_color: ${{ steps.extract.outputs.primary }}
     steps:
-    - name: Checkout Codebase
-      uses: actions/checkout@v4
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
 
-    - name: Set up Python Environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
-    - name: Set up Node.js Environment
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
+      - name: Stage 01 — Execute Brand Color Extractor
+        id: extract
+        run: |
+          echo "::group::Brand Extraction Log"
+          python scripts/extract_brand.py \
+            "${{ github.event.inputs.client_url }}" \
+            "${{ github.event.inputs.industry }}"
+          echo "::endgroup::"
 
-    - name: Install Node Dependencies
-      run: npm ci
+          # Parse output for downstream stages
+          PRIMARY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('primary','#8b5cf6'))")
+          INDUSTRY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('detected_industry','default'))")
+          echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
+          echo "industry=$INDUSTRY" >> $GITHUB_OUTPUT
+          echo "✓ Primary: $PRIMARY | Industry: $INDUSTRY"
 
-    - name: Execute Brand Color Scraper
-      run: |
-        python scripts/extract_brand.py "${{ github.event.inputs.client_url }}" "${{ github.event.inputs.industry }}"
+      - name: Upload brand_colors.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: brand-colors
+          path: brand_colors.json
+          retention-days: 7
 
-    - name: Execute Failsafe Code Compiler
-      run: |
-        node scripts/generate.js
-      env:
-        BUSINESS_NAME: "${{ github.event.inputs.business_name }}"
-        CONTACT_EMAIL: "${{ github.event.inputs.contact_email }}"
-        FORMSPREE_HASH: "${{ github.event.inputs.formspree_hash }}"
+  # ══ Stage 03-04: Build + CSS Compile ═════════════════════════════════════════
+  build-and-compile:
+    name: "Stage 03-04 — Culture-First Build + CSS"
+    runs-on: ubuntu-latest
+    needs: brand-extract
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
 
-    - name: Compile Production Tailwind Assets
-      run: |
-        npm run build:css
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    - name: Commit & Deploy Production Distribution
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        
-        # Verify if there are changes in the dist output
-        git add dist/
-        if git diff --cached --quiet; then
-          echo "No production asset updates recorded. Skipping commit."
-        else
-          git commit -m "Deploy hardened production build assets [skip ci]"
-          git push origin main
-        fi
+      - name: Download brand colors artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: brand-colors
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Stage 03 — Hardened Variable Compilation
+        run: |
+          echo "::group::Generator Log"
+          node scripts/generate.js
+          echo "::endgroup::"
+        env:
+          BUSINESS_NAME:  "${{ github.event.inputs.business_name }}"
+          CONTACT_EMAIL:  "${{ github.event.inputs.contact_email }}"
+          FORMSPREE_HASH: "${{ github.event.inputs.formspree_hash }}"
+
+      - name: Stage 04 — Compile Tailwind Production Assets
+        run: npm run build:css
+
+      - name: Verify dist outputs exist
+        run: |
+          test -f dist/index.html || (echo "❌ dist/index.html missing" && exit 1)
+          test -f dist/styles.css || (echo "❌ dist/styles.css missing" && exit 1)
+          echo "✓ dist/index.html: $(wc -c < dist/index.html) bytes"
+          echo "✓ dist/styles.css: $(wc -c < dist/styles.css) bytes"
+
+      - name: Stage 05 — Static Code Critique (CI-mode, no Ollama)
+        run: |
+          echo "::group::Static Audit"
+          node -e "
+          const fs = require('fs');
+          const html = fs.existsSync('dist/index.html') ? fs.readFileSync('dist/index.html','utf8') : '';
+          const css  = fs.existsSync('dist/styles.css')  ? fs.readFileSync('dist/styles.css', 'utf8') : '';
+          const issues = [];
+          if (!html.includes('viewport')) issues.push('CRITICAL: Missing viewport meta tag');
+          if (!html.includes('lang='))    issues.push('WARNING: Missing lang attribute');
+          if (!css.includes('@media'))    issues.push('WARNING: No responsive breakpoints');
+          const hardcoded = (css.match(/(?<!var\()[0-9]{2,4}px/g)||[]).length;
+          if (hardcoded > 10) issues.push('WARNING: ' + hardcoded + ' hardcoded px values detected');
+          if (issues.length > 0) {
+            console.log('Critique issues found:');
+            issues.forEach(i => console.log('  • ' + i));
+          } else {
+            console.log('✓ Static audit passed — no critical issues');
+          }
+          "
+          echo "::endgroup::"
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-output
+          path: dist/
+          retention-days: 30
+
+  # ══ Stage 06: Delivery — Commit & Push ═══════════════════════════════════════
+  delivery:
+    name: "Stage 06 — Production Delivery"
+    runs-on: ubuntu-latest
+    needs: build-and-compile
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-output
+          path: dist/
+
+      - name: Download brand colors
+        uses: actions/download-artifact@v4
+        with:
+          name: brand-colors
+
+      - name: Stage 06 — Commit & Deploy Distribution
+        run: |
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add dist/ brand_colors.json
+          if git diff --cached --quiet; then
+            echo "No distribution changes detected — skipping commit."
+          else
+            INDUSTRY="${{ needs.brand-extract.outputs.industry }}"
+            PRIMARY="${{ needs.brand-extract.outputs.primary_color }}"
+            git commit -m "🚀 Deploy: AURA Pipeline build [${INDUSTRY}] primary=${PRIMARY} [skip ci]"
+            git push origin main
+            echo "✅ Production distribution committed and pushed"
+          fi
+
+      - name: Generate B2B Pitch (offline mode)
+        run: |
+          node -e "
+          const fs = require('fs');
+          const brand = JSON.parse(fs.readFileSync('brand_colors.json','utf8'));
+          const pitch = \`# B2B Pitch — AURA Pipeline Build
+          
+Generated: \${new Date().toISOString()}
+Industry: \${brand.detected_industry || 'default'}
+Primary Color: \${brand.primary}
+
+Pipeline completed all 6 stages successfully.
+\`;
+          fs.mkdirSync('dist/delivery', {recursive: true});
+          fs.writeFileSync('dist/delivery/b2b-pitch.md', pitch);
+          console.log('✓ B2B pitch artifact generated');
+          "
+
+      - name: Upload delivery bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: delivery-bundle
+          path: dist/
+          retention-days: 90

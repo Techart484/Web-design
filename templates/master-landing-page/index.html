@@ -216,11 +216,22 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const trigger = document.getElementById('mobile-menu-trigger');
-      const header = document.querySelector('header');
-      if (trigger) {
+      const nav = document.querySelector('header nav');
+
+      // Inject mobile nav styles once
+      const style = document.createElement('style');
+      style.textContent = 'header nav.mobile-open{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:#0e0c15ee;padding:16px 24px;gap:16px;border-bottom:1px solid rgba(255,255,255,0.06);z-index:100;}';
+      document.head.appendChild(style);
+
+      if (trigger && nav) {
         trigger.addEventListener('click', () => {
-          // Toggle basic mobile menu display if required
-          alert('Mobile navigation toggled. Scaled down options synced.');
+          nav.classList.toggle('mobile-open');
+          const isOpen = nav.classList.contains('mobile-open');
+          trigger.setAttribute('aria-expanded', isOpen);
+        });
+        // Close nav when a link is clicked
+        nav.querySelectorAll('a').forEach(a => {
+          a.addEventListener('click', () => nav.classList.remove('mobile-open'));
         });
       }
     });
