@@ -3,466 +3,280 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURA // Autonomous Web Designer Engine</title>
-  <meta name="description" content="6-stage autonomous web design pipeline with AI-powered brand extraction, competitor analysis, and production-grade export.">
-  <meta name="keywords" content="web design automation, AI pipeline, brand extraction, no-code builder, autonomous design">
-
+  <title>AUTONOMOUS WEB DESIGNER ENGINE // B2B Control Center</title>
+  <meta name="description" content="Autonomous 6-stage web design pipeline with AI brand extraction, competitor analysis, and production-grade export.">
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- JSZip with SRI hash (FIX #10) -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-    integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-    defer></script>
+  <!-- JSZip for export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
-<body>
+<body class="premium-brutalist">
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
-
-  <!-- Custom Confirm Modal Insertion Point -->
-
-  <!-- Background Decorative Meshes -->
-  <div class="bg-glow-1" aria-hidden="true"></div>
-  <div class="bg-glow-2" aria-hidden="true"></div>
-
-  <!-- Header Dashboard Bar -->
-  <header role="banner">
-    <div class="logo" id="dashboard-logo">
-      <div class="logo-icon" aria-hidden="true">▲</div>
-      <span class="logo-text">AURA.SYSTEM</span>
-      <span class="logo-badge">AUTONOMOUS ENGINE v2</span>
-    </div>
-
-    <div class="header-controls">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <label for="preset-selector" style="font-size: 11px; font-weight: 600; color: var(--color-text-muted);">PRESET CONFIG:</label>
-        <select id="preset-selector" class="form-select" style="width: 200px; padding: 6px 10px; font-size: 12.5px;" aria-label="Template Preset Selector">
-          <option value="saas">SaaS Launch Engine (Default)</option>
-          <option value="creative">Creative Agency Portal</option>
-          <option value="construction">Industrial Roofing / Construction</option>
-          <option value="medical">Medical &amp; Dental Clinic</option>
-          <option value="legal">Legal &amp; Professional Practice</option>
-          <option value="fitness">Elite Fitness &amp; Gym Club</option>
-        </select>
+  <!-- Top Navigation Bar -->
+  <header class="engine-header">
+    <div class="header-left">
+      <div class="engine-logo">
+        <span class="logo-box"></span>
+        <div class="logo-text">
+          <h1>AUTONOMOUS WEB DESIGNER ENGINE</h1>
+          <nav class="engine-nav-links">
+            <span>INGEST</span> • <span>VERCEL DEPLOY</span> • <span>FRAMER POLISH</span> • <span>MAINTENANCE</span>
+          </nav>
+        </div>
       </div>
-
-      <button id="clear-canvas-btn" class="btn btn-secondary" title="Clear All Active Canvas Layout Sections" aria-label="Clear Canvas">
-        <span aria-hidden="true">🗑️</span> Clear Layout
-      </button>
-
-      <button id="toggle-code-drawer" class="btn btn-secondary" title="View Compiled HTML/CSS Code" aria-label="Toggle Code Viewer">
-        🖨️ View Compiled Code
-      </button>
-
-      <button id="download-zip-btn" class="btn btn-primary" title="Export Production /dist ZIP" aria-label="Download ZIP">
-        📦 Download ZIP
-      </button>
+    </div>
+    <div class="header-right">
+      <div class="api-status">
+        <span class="status-icon">((●))</span>
+        <span class="status-text">LIVE_API_CONNECT_MODE</span>
+      </div>
+      <div class="build-info">BUILD 2026.06</div>
+      <div class="system-ready">● READY</div>
     </div>
   </header>
 
-  <!-- Main Application Workspace -->
-  <main role="main">
+  <main class="control-center">
 
-    <!-- ── Left Sidebar Control Panel ── -->
-    <div class="sidebar" id="control-sidebar" role="complementary" aria-label="Design Controls">
-      <div class="sidebar-tabs" role="tablist">
-        <button class="tab-btn active" data-tab="design" id="tab-design-system" role="tab" aria-selected="true" aria-controls="panel-design">🎨 Design</button>
-        <button class="tab-btn" data-tab="components" id="tab-components-library" role="tab" aria-selected="false" aria-controls="panel-components">🧩 Components</button>
-        <button class="tab-btn" data-tab="seo" id="tab-seo-metadata" role="tab" aria-selected="false" aria-controls="panel-seo">📡 SEO</button>
-        <button class="tab-btn pipeline-tab" data-tab="pipeline" id="tab-pipeline" role="tab" aria-selected="false" aria-controls="panel-pipeline">⚡ AI Pipeline</button>
+    <!-- AUTH / 01 SERVER SECRETS -->
+    <section class="ui-section" id="section-auth">
+      <div class="section-header">
+        <span class="section-label">AUTH / 01</span>
+        <span class="section-title">SERVER SECRETS</span>
       </div>
-
-      <div class="sidebar-content">
-
-        <!-- ── PANEL 1: Design System ── -->
-        <div class="panel-section active" id="panel-design" role="tabpanel" aria-labelledby="tab-design-system">
-
-          <!-- Dual-Input Controller -->
-          <div class="dual-input-controller">
-            <div class="dual-input-tabs">
-              <button class="dual-tab active" id="dual-tab-url" data-input="url">🌐 URL Scan</button>
-              <button class="dual-tab" id="dual-tab-words" data-input="words">✏️ Style Words</button>
-            </div>
-
-            <!-- URL Mode -->
-            <div class="dual-input-pane active" id="dual-pane-url">
-              <label for="client-url" class="form-label">CLIENT WEBSITE URL</label>
-              <div style="display: flex; gap: 8px; margin-top: 6px;">
-                <input type="url" id="client-url" class="form-input" placeholder="e.g. dentalclinic.com" style="flex: 1;" aria-label="Client website URL">
-                <button id="brand-scan-btn" class="btn btn-accent" style="padding: 10px 14px; white-space: nowrap;" aria-label="Scan brand colors">⚡ Scan</button>
-              </div>
-              <span class="input-hint">Parses CSS variables and color tokens from the target site. Falls back to industry matrix if unreachable.</span>
-            </div>
-
-            <!-- Style Words Mode -->
-            <div class="dual-input-pane" id="dual-pane-words">
-              <label for="style-words" class="form-label">STYLE DESCRIPTOR WORDS</label>
-              <textarea id="style-words" class="form-input" rows="3" placeholder="e.g. glassmorphic, neon purple, dark slate, aggressive red, corporate minimal" style="margin-top: 6px; resize: vertical; min-height: 72px;" aria-label="Style descriptor words"></textarea>
-              <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <button id="style-words-apply-btn" class="btn btn-primary" style="flex: 1; font-size: 12px;">Apply Style Words</button>
-                <button id="style-words-clear-btn" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" aria-label="Clear style words">✕</button>
-              </div>
-              <span class="input-hint">Comma-separated descriptors map to theme variables. AI-enhanced if Ollama is online.</span>
-            </div>
-
-            <!-- Active Tag Display -->
-            <div class="style-tags-display" id="style-tags-display" style="display: none;">
-              <span class="style-tags-label">ACTIVE STYLE TAGS:</span>
-              <div class="style-tags-list" id="style-tags-list"></div>
-            </div>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Color Matrix -->
-          <div class="panel-title"><span aria-hidden="true">🎨</span> Color Styling Matrix</div>
-          <div class="form-group">
-            <div class="color-inputs-grid">
-              <div>
-                <label class="form-label">PRIMARY BRAND</label>
-                <div class="color-picker-wrapper" id="color-primary-wrapper">
-                  <input type="color" class="color-picker" value="#8b5cf6" aria-label="Primary brand color">
-                  <span class="color-hex-text" role="button" tabindex="0">#8b5cf6</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">SECONDARY BRAND</label>
-                <div class="color-picker-wrapper" id="color-secondary-wrapper">
-                  <input type="color" class="color-picker" value="#f43f5e" aria-label="Secondary brand color">
-                  <span class="color-hex-text" role="button" tabindex="0">#f43f5e</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">NEON ACCENT</label>
-                <div class="color-picker-wrapper" id="color-accent-wrapper">
-                  <input type="color" class="color-picker" value="#06b6d4" aria-label="Accent color">
-                  <span class="color-hex-text" role="button" tabindex="0">#06b6d4</span>
-                </div>
-              </div>
-              <div>
-                <label class="form-label">CANVAS BG</label>
-                <div class="color-picker-wrapper" id="color-bg-wrapper">
-                  <input type="color" class="color-picker" value="#06050b" aria-label="Background color">
-                  <span class="color-hex-text" role="button" tabindex="0">#06050b</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Layout Parameters -->
-          <div class="panel-title"><span aria-hidden="true">📏</span> Layout Parameters</div>
-          <div class="form-group">
-            <label for="container-width" class="form-label">MAX CONTAINER WIDTH (PX)</label>
-            <input type="range" id="container-width" min="960" max="1440" step="20" class="form-input" style="padding: 0; cursor: pointer;" aria-label="Container width">
-          </div>
-          <div class="form-group">
-            <label for="border-radius" class="form-label">BORDER RADIUS (PX)</label>
-            <input type="range" id="border-radius" min="0" max="24" step="2" class="form-input" style="padding: 0; cursor: pointer;" aria-label="Border radius">
-          </div>
-          <div class="form-group">
-            <label for="font-family" class="form-label">TYPOGRAPHY SYSTEM</label>
-            <select id="font-family" class="form-select" aria-label="Font family">
-              <option value="Outfit">Outfit (Geometric &amp; Modern)</option>
-              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Sleek &amp; Tech)</option>
-            </select>
-          </div>
+      <div class="secrets-grid">
+        <div class="secret-card configured">
+          <span class="lock-icon">🔒</span>
+          <label for="firecrawl-key">FIRECRAWL_API_KEY</label>
+          <input type="password" id="firecrawl-key" value="••••••••••••••••" readonly>
+          <span class="status-tag">CONFIGURED</span>
         </div>
-
-        <!-- ── PANEL 2: Components ── -->
-        <div class="panel-section" id="panel-components" role="tabpanel" aria-labelledby="tab-components-library">
-          <div class="panel-title"><span aria-hidden="true">🧩</span> Navigation Registry</div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Glassmorphic Navbar</span>
-                <span class="component-desc">Translucent sticky top-bar</span>
-              </div>
-              <button class="component-add-btn" data-component="navbar" title="Add Navbar" aria-label="Add Navbar component">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Clean Footer</span>
-                <span class="component-desc">MIT copyright &amp; link indices</span>
-              </div>
-              <button class="component-add-btn" data-component="footer" title="Add Footer" aria-label="Add Footer component">+</button>
-            </div>
-          </div>
-
-          <div style="margin: 20px 0;"></div>
-
-          <div class="panel-title"><span aria-hidden="true">🖥️</span> Display Blocks</div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Sleek Split Hero</span>
-                <span class="component-desc">Headline + gradient tag + code mockup</span>
-              </div>
-              <button class="component-add-btn" data-component="hero" title="Add Hero" aria-label="Add Hero component">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Neon Features Grid</span>
-                <span class="component-desc">3 Glowing cards with hover states</span>
-              </div>
-              <button class="component-add-btn" data-component="features" title="Add Features" aria-label="Add Features component">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Metric Milestones</span>
-                <span class="component-desc">Performance uptime counters grid</span>
-              </div>
-              <button class="component-add-btn" data-component="stats" title="Add Metrics" aria-label="Add Stats component">+</button>
-            </div>
-          </div>
-
-          <div style="margin: 20px 0;"></div>
-
-          <div class="panel-title"><span aria-hidden="true">📈</span> Conversion Modules</div>
-          <div class="component-grid">
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Sleek Pricing Columns</span>
-                <span class="component-desc">Scaling plan values with highlight ribbons</span>
-              </div>
-              <button class="component-add-btn" data-component="pricing" title="Add Pricing" aria-label="Add Pricing component">+</button>
-            </div>
-            <div class="component-card">
-              <div class="component-info">
-                <span class="component-name">Frictionless Contact Form</span>
-                <span class="component-desc">Split layout with Formspree handling</span>
-              </div>
-              <button class="component-add-btn" data-component="contact" title="Add Contact" aria-label="Add Contact component">+</button>
-            </div>
-          </div>
+        <div class="secret-card configured">
+          <span class="lock-icon">🔒</span>
+          <label for="gemini-key">GEMINI_API_KEY</label>
+          <input type="password" id="gemini-key" value="••••••••••••••••" readonly>
+          <span class="status-tag">CONFIGURED</span>
         </div>
-
-        <!-- ── PANEL 3: SEO ── -->
-        <div class="panel-section" id="panel-seo" role="tabpanel" aria-labelledby="tab-seo-metadata">
-          <div class="panel-title"><span aria-hidden="true">📡</span> Core SEO Configuration</div>
-          <div class="form-group">
-            <label for="seo-title" class="form-label">DOCUMENT TITLE (&lt;title&gt;)</label>
-            <input type="text" id="seo-title" class="form-input" placeholder="Automated Production Page" aria-label="SEO title">
-          </div>
-          <div class="form-group">
-            <label for="seo-desc" class="form-label">META DESCRIPTION</label>
-            <input type="text" id="seo-desc" class="form-input" placeholder="Dynamic responsive layout system" aria-label="SEO description">
-          </div>
-          <div class="form-group">
-            <label for="seo-keys" class="form-label">META KEYWORDS</label>
-            <input type="text" id="seo-keys" class="form-input" placeholder="landing page, visual creator, system" aria-label="SEO keywords">
-          </div>
-          <div class="form-group">
-            <label for="seo-lang" class="form-label">DOCUMENT LANGUAGE</label>
-            <input type="text" id="seo-lang" class="form-input" placeholder="en" style="width: 80px;" aria-label="Document language code">
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <div class="panel-title"><span aria-hidden="true">🔑</span> Form Integration</div>
-          <div class="form-group">
-            <label for="contact-email" class="form-label">FORMSPREE TARGET EMAIL / HASH</label>
-            <input type="text" id="contact-email" class="form-input" placeholder="your-hash-or-email@domain.com" aria-label="Contact email or Formspree hash">
-            <span style="font-size: 10.5px; color: var(--color-text-muted); display: block; margin-top: 6px; line-height: 1.35;">
-              Contact forms will target this credential via Formspree or mailto.
-            </span>
-          </div>
+        <div class="secret-card configured">
+          <span class="lock-icon">🔒</span>
+          <label for="github-token">GITHUB_TOKEN</label>
+          <input type="password" id="github-token" value="••••••••••••••••" readonly>
+          <span class="status-tag">CONFIGURED</span>
         </div>
-
-        <!-- ── PANEL 4: AI Pipeline ── -->
-        <div class="panel-section" id="panel-pipeline" role="tabpanel" aria-labelledby="tab-pipeline">
-
-          <!-- Ollama Status Bar -->
-          <div class="ollama-status-bar">
-            <div class="ollama-status-header">
-              <span class="panel-title-inline">🤖 AI Engine Status</span>
-              <button class="btn-ghost" onclick="checkOllamaStatus()" title="Refresh status" aria-label="Refresh Ollama status">↻</button>
-            </div>
-            <span id="ollama-status" class="ollama-status offline">⟳ Checking...</span>
-            <span id="ollama-models" class="ollama-models-list"></span>
-            <span class="input-hint" style="margin-top: 4px;">Run <code>scripts/setup-ollama.ps1</code> to install Ollama + models</span>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Pipeline Config -->
-          <div class="panel-title">⚡ Autonomous Pipeline</div>
-          <div class="form-group">
-            <label for="pipeline-client-url" class="form-label">CLIENT URL</label>
-            <input type="url" id="pipeline-client-url" class="form-input" placeholder="https://clientsite.com" aria-label="Pipeline client URL">
-          </div>
-          <div class="form-group">
-            <label for="pipeline-client-name" class="form-label">CLIENT NAME</label>
-            <input type="text" id="pipeline-client-name" class="form-input" placeholder="Acme Corp" aria-label="Client business name">
-          </div>
-          <div class="form-group">
-            <label for="pipeline-industry" class="form-label">INDUSTRY</label>
-            <select id="pipeline-industry" class="form-select" aria-label="Client industry">
-              <option value="default">Auto-Detect</option>
-              <option value="medical">Medical / Healthcare</option>
-              <option value="construction">Construction / Roofing</option>
-              <option value="legal">Legal / Professional</option>
-              <option value="fitness">Fitness / Gym</option>
-            </select>
-          </div>
-          <div style="display: flex; gap: 8px; margin-top: 8px;">
-            <button id="pipeline-run-btn" class="btn btn-primary" style="flex: 1;" aria-label="Run full pipeline">⚡ Run Full Pipeline</button>
-            <button id="pipeline-abort-btn" class="btn btn-secondary" style="padding: 10px 14px;" aria-label="Abort pipeline">⛔</button>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Stage Status Board -->
-          <div class="panel-title">📊 Stage Status</div>
-          <div class="pipeline-stages" id="pipeline-stages-board">
-            <div class="stage-indicator stage-pending" id="stage-indicator-1">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 01 — Brand Scrape</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-1"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-1" aria-label="Run Stage 1">▶ Run</button>
-            </div>
-            <div class="stage-indicator stage-pending" id="stage-indicator-2">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 02 — Competitor Matrix</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-2"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-2" aria-label="Run Stage 2">▶ Run</button>
-            </div>
-            <div class="stage-indicator stage-pending" id="stage-indicator-3">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 03 — Culture-First Build</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-3"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-3" aria-label="Run Stage 3">▶ Run</button>
-            </div>
-            <div class="stage-indicator stage-pending" id="stage-indicator-4">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 04 — Visual Signature</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-4"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-4" aria-label="Run Stage 4">▶ Run</button>
-            </div>
-            <div class="stage-indicator stage-pending" id="stage-indicator-5">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 05 — Critique Loop</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-5"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-5" aria-label="Run Stage 5">▶ Run</button>
-            </div>
-            <div class="stage-indicator stage-pending" id="stage-indicator-6">
-              <div class="stage-header">
-                <span class="stage-dot">○</span>
-                <span class="stage-name">Stage 06 — Delivery</span>
-                <span class="stage-status-label">Pending</span>
-              </div>
-              <pre class="stage-log" id="stage-log-6"></pre>
-              <button class="btn-ghost stage-run-btn" id="stage-run-6" aria-label="Run Stage 6">▶ Run</button>
-            </div>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Competitor Matrix Display -->
-          <div class="panel-title">🏆 Competitor Matrix</div>
-          <div id="competitor-matrix-display" class="pipeline-sub-panel">
-            <p class="pipeline-empty">Awaiting Stage 02 completion...</p>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Critique Report -->
-          <div class="panel-title">🔍 Critique Report</div>
-          <div id="critique-report-display" class="pipeline-sub-panel">
-            <p class="pipeline-empty">Awaiting Stage 05 completion...</p>
-          </div>
-
-          <div class="panel-divider"></div>
-
-          <!-- Delivery -->
-          <div class="panel-title">🚀 Delivery Artifacts</div>
-          <div id="delivery-display" class="pipeline-sub-panel">
-            <p class="pipeline-empty">Awaiting Stage 06 completion...</p>
-          </div>
-
-        </div>
-
       </div>
+      <div class="secret-warning">
+        <span class="warning-icon">⚠</span>
+        <span class="warning-text">VERCEL DEPLOY • TOKEN REQUIRED FOR PRODUCTION</span>
+      </div>
+      <div class="execution-status">
+        <span class="status-dot"></span>
+        <span class="status-msg">CREDENTIALS PRESENT • EXECUTION UNLOCKED</span>
+        <button class="recheck-btn">⟳ Re-check</button>
+      </div>
+    </section>
+
+    <!-- META / 01 & 02 -->
+    <div class="meta-row">
+      <section class="ui-section flex-grow" id="section-target-url">
+        <div class="section-header">
+          <span class="section-label">META / 01</span>
+          <span class="section-title">TARGET URL</span>
+        </div>
+        <div class="url-input-wrapper">
+          <span class="cursor">|</span>
+          <input type="url" id="target-url" placeholder="https://target-site.com">
+        </div>
+      </section>
+
+      <section class="ui-section" id="section-signature">
+        <div class="section-header">
+          <span class="section-label">META / 02</span>
+          <span class="section-title">DESIGN SIGNATURE</span>
+        </div>
+        <div class="signature-selector">
+          <div class="signature-value">PREMIUM BRUTALIST</div>
+          <div class="signature-meta">HAIRLINES • MONO META • SCROLL-JACK</div>
+        </div>
+      </section>
     </div>
 
-    <!-- ── Central Preview Canvas ── -->
-    <div class="canvas-container" id="workspace-canvas" role="main" aria-label="Design Preview Canvas">
-      <div class="canvas-toolbar">
-        <div style="font-size: 11px; font-weight: 600; color: var(--color-text-muted); letter-spacing: 0.5px; text-transform: uppercase;">
-          Live Sandbox Viewport
-        </div>
-        <div class="device-selectors" role="group" aria-label="Device viewport">
-          <button class="device-btn active" data-device="desktop" title="Desktop Viewport" aria-label="Desktop viewport">🖥️</button>
-          <button class="device-btn" data-device="tablet" title="Tablet Viewport" aria-label="Tablet viewport">📟</button>
-          <button class="device-btn" data-device="mobile" title="Mobile Viewport" aria-label="Mobile viewport">📱</button>
-        </div>
-        <div></div>
-      </div>
-
-      <div class="canvas-viewport">
-        <div class="empty-canvas" id="canvas-empty-state" role="status">
-          <div class="empty-canvas-icon" aria-hidden="true">▲</div>
-          <div class="empty-canvas-title">System Canvas Empty</div>
-          <div class="empty-canvas-desc">Select an industry preset or run the ⚡ AI Pipeline to auto-generate your layout.</div>
-        </div>
-        <div class="preview-wrapper desktop" id="viewport-wrapper">
-          <iframe id="preview-iframe" title="Dynamic Client Canvas Viewport" sandbox="allow-scripts allow-same-origin"></iframe>
+    <!-- PIPELINE CONTROL -->
+    <section class="ui-section" id="section-pipeline-control">
+      <div class="pipeline-nav">
+        <nav class="pipeline-steps">
+          <span>PIPELINE</span> • <span>SCRAPE</span> • <span>STACK-NATIVE CODEGEN</span> • <span>VERCEL HOBBY</span> • <span>FRAMER POLISH</span> • <span>DELIVERY</span> • <span>MONETIZATION</span>
+        </nav>
+        <div class="pipeline-actions">
+          <button id="execute-pipeline" class="btn-execute">▷ EXECUTE PIPELINE</button>
+          <button id="reset-seed" class="btn-reset">⟳ RESET SEED</button>
         </div>
       </div>
 
-      <!-- Collapsible Code Drawer -->
-      <div class="code-viewer-drawer" id="code-drawer" role="region" aria-label="Compiled Code Viewer">
-        <div class="code-viewer-header">
-          <div class="code-tabs" role="tablist">
-            <button class="code-tab active" data-format="html" role="tab">dist/index.html</button>
-            <button class="code-tab" data-format="css" role="tab">dist/css/styles.css</button>
+      <!-- Pipeline Stages Grid -->
+      <div class="stages-grid">
+        <div class="stage-box" id="stage-1" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 01</span>
+            <span class="stage-indicator-dot"></span>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" id="copy-code-btn" style="padding: 4px 12px; font-size: 11.5px;" aria-label="Copy code to clipboard">
-              📋 Copy Code Packet
-            </button>
+          <h3 class="stage-title">FULL-SITE CRAWL & BRAND BIBLE</h3>
+          <p class="stage-desc">EVERY PAGE • OFFERINGS • VOICE • CULTURE • JOURNEY</p>
+        </div>
+        <div class="stage-box" id="stage-2" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 02</span>
+            <span class="stage-indicator-dot"></span>
+          </div>
+          <h3 class="stage-title">COMPETITOR MATRIX & POSITIONING</h3>
+          <p class="stage-desc">6-10 RIVALS • OWNABLE ANGLE • DISTINCTLY SUPERIOR</p>
+        </div>
+        <div class="stage-box" id="stage-3" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 03</span>
+            <span class="stage-indicator-dot"></span>
+          </div>
+          <h3 class="stage-title">OFFERINGS & CULTURE-FIRST BUILD</h3>
+          <p class="stage-desc">REAL JOURNEY • REAL SERVICES • CULTURE-INFUSED ARCHITECTURE</p>
+        </div>
+        <div class="stage-box" id="stage-4" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 04</span>
+            <span class="stage-indicator-dot"></span>
+          </div>
+          <h3 class="stage-title">VISUAL & EXPERIENCE UNIQUENESS</h3>
+          <p class="stage-desc">FRESH DNA-ONLY LANGUAGE • ZERO REUSE • CUSTOM MOTION</p>
+        </div>
+        <div class="stage-box" id="stage-5" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 05</span>
+            <span class="stage-indicator-dot"></span>
+          </div>
+          <h3 class="stage-title">SELF-FIXING CRITIQUE LOOP</h3>
+          <p class="stage-desc">2+ CRITIQUE -> FIX CYCLES VS BRAND & CULTURE BIBLE</p>
+        </div>
+        <div class="stage-box" id="stage-6" data-status="pending">
+          <div class="stage-top">
+            <span class="stage-label">STAGE / 06</span>
+            <span class="stage-indicator-dot"></span>
+          </div>
+          <h3 class="stage-title">FINAL VALIDATION & DELIVERY</h3>
+          <p class="stage-desc">NATURAL-EXTENSION CHECK • ONE-CLICK DEPLOY • MONTHLY PLAN</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- META / 03 PIPELINE STREAM -->
+    <section class="ui-section" id="section-stream">
+      <div class="section-header">
+        <span class="section-label">META / 03</span>
+        <span class="section-title">PIPELINE STREAM</span>
+      </div>
+      <div class="terminal-container">
+        <pre id="pipeline-output">// awaiting execution...</pre>
+      </div>
+    </section>
+
+    <!-- VERCEL DEPLOY -->
+    <section class="ui-section" id="section-vercel">
+      <div class="section-header">
+        <span class="section-title">STAGE 02 • STACK-NATIVE VERCEL DEPLOY</span>
+        <span class="status-right">// AWAITING STAGE 2</span>
+      </div>
+      <div class="placeholder-area">
+        <p>// Vercel deployment artifact will mount after Stage 1 completes</p>
+      </div>
+    </section>
+
+    <!-- FRAMER CANVAS -->
+    <section class="ui-section" id="section-framer">
+      <div class="section-header">
+        <span class="section-title">FRAMER • STAGE 03 VISUAL CANVAS</span>
+        <span class="status-right">● WSS DISCONNECTED</span>
+      </div>
+      <div class="placeholder-area">
+        <p>// Premium Brutalist package will mount after Stage 2 finishes</p>
+      </div>
+    </section>
+
+    <!-- DELIVERY + MONETIZATION -->
+    <section class="ui-section" id="section-delivery">
+      <div class="section-header">
+        <span class="section-label">OUT / 01</span>
+        <span class="section-title">DELIVERY + MONETIZATION</span>
+      </div>
+      <div class="delivery-grid">
+        <div class="delivery-col">
+          <div class="flow-box">
+            <h4 class="flow-title">$ FLOW A • UPFRONT FULL REBUILD</h4>
+            <p class="flow-desc">High-performance modernization asset ready for client handoff.</p>
+            <div class="flow-status">// pricing tier calibrates after Stage 4 completes</div>
+          </div>
+          <div class="delivery-links">
+            <div class="link-item">
+              <span class="link-label">OPEN VERCEL HOBBY DEPLOYMENT</span>
+              <div class="link-row">
+                <span class="link-url">—</span>
+                <span class="link-icon">↗</span>
+              </div>
+            </div>
+            <div class="link-item">
+              <span class="link-label">OPEN FRAMER POLISH CANVAS</span>
+              <div class="link-row">
+                <span class="link-url">—</span>
+                <span class="link-icon">↗</span>
+              </div>
+            </div>
+            <div class="link-item">
+              <span class="link-label">OPEN DELIVERY REPOSITORY</span>
+              <div class="link-row">
+                <span class="link-url">—</span>
+                <span class="link-icon">❐</span>
+              </div>
+            </div>
+          </div>
+          <div class="run-hint">• RUN THE PIPELINE TO GENERATE THE STAGING + CANVAS LINKS</div>
+        </div>
+        <div class="delivery-col">
+          <div class="flow-box">
+            <h4 class="flow-title">ϟ FLOW B • RECURRING MAINTENANCE MONITOR</h4>
+            <p class="flow-desc">Embedded background script • monthly subscription • automated stack upkeep.</p>
+            <div class="flow-status">// monitor arms after Stage 4 completes</div>
+          </div>
+          <div class="pitch-generator">
+            <div class="pitch-header">
+              <div class="pitch-info">
+                <h4 class="pitch-title">B2B CLIENT PITCH GENERATOR</h4>
+                <p class="pitch-desc">Cold email crafted from the scraped value propositions</p>
+              </div>
+              <button class="btn-pitch">✉ DRAFT PITCH</button>
+            </div>
+            <div class="pitch-status">// no pitch drafted yet — needs a completed Stage 1 audit</div>
           </div>
         </div>
-        <div class="code-body">
-          <pre id="code-viewer-html" class="code-container" role="textbox" aria-readonly="true" aria-label="HTML output"></pre>
-          <pre id="code-viewer-css" class="code-container" style="display: none;" role="textbox" aria-readonly="true" aria-label="CSS output"></pre>
-        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ── Right Layout Matrix Panel ── -->
-    <div class="layout-panel" id="layout-matrix-sidebar" role="complementary" aria-label="Layout Matrix">
-      <div class="layout-header">Active Canvas Matrix</div>
-      <div class="layout-list" id="layout-items-list" role="list">
-        <!-- Dynamically populated -->
+    <!-- LIVE SITE PREVIEW -->
+    <section class="ui-section" id="section-preview">
+      <div class="section-header">
+        <span class="section-label">OUTPUT / 01</span>
+        <span class="section-title">LIVE SITE PREVIEW</span>
       </div>
-    </div>
+      <div class="preview-container">
+        <div id="live-preview-mount">// PREVIEW RENDERS AFTER STAGE 1 (SCRAPE) COMPLETES</div>
+        <iframe id="preview-iframe" title="Live Preview" style="display: none;"></iframe>
+      </div>
+    </section>
 
   </main>
 
-  <!-- ── JavaScript Load Chain (FIX #11: defer on all scripts) ── -->
+  <footer class="engine-footer">
+    <div class="footer-left">AUTONOMOUS WEB DESIGNER ENGINE • B2B CONTROL CENTER</div>
+    <div class="footer-right">VOL. XIV • VERCEL + FRAMER + MAINTENANCE PIPELINE</div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/manifest.js" defer></script>
   <script src="js/components.js" defer></script>
   <script src="js/templates.js" defer></script>
-  <script src="js/manifest.js" defer></script>
   <script src="js/motion-library.js" defer></script>
   <script src="js/ai-engine.js" defer></script>
   <script src="js/critique-engine.js" defer></script>
