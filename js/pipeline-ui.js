@@ -76,7 +76,7 @@ const PipelineUI = {
   updateMounts(stageId) {
     if (stageId === 1) {
       const v = document.querySelector('#section-vercel .placeholder-area p');
-      if (v) v.innerHTML = '<span style="color:#00ff00">✓ VERCEL_BUILD_PROTOTYPE_DEPLOYED</span><br>URL: https://aura-prototype-921.vercel.app';
+      if (v) v.innerHTML = '<span style="color:#00ff00">✓ VERCEL_BUILD_PROTOTYPE_DEPLOYED</span><br>URL: https://engine-prototype-921.vercel.app';
 
       const pm = document.getElementById('live-preview-mount');
       if (pm) pm.style.display = 'none';
@@ -95,17 +95,46 @@ const PipelineUI = {
     }
   },
 
-  /** Update delivery links */
-  renderDelivery(pitch) {
+  /** Update delivery links and financial UI */
+  renderDelivery(pitch, upfront, monthly) {
     const links = document.querySelectorAll('.link-url');
-    if (links[0]) links[0].textContent = 'https://aura-prototype-921.vercel.app';
-    if (links[1]) links[1].textContent = 'https://framer.com/projects/aura-polish-v14';
+    if (links[0]) links[0].textContent = 'https://engine-prototype-921.vercel.app';
+    if (links[1]) links[1].textContent = 'https://framer.com/projects/engine-polish-v14';
     if (links[2]) links[2].textContent = 'github.com/techart484/delivery-repo';
 
     const pitchStatus = document.querySelector('.pitch-status');
     if (pitchStatus) {
       pitchStatus.textContent = '// PITCH DRAFTED: ' + pitch.substring(0, 60) + '...';
       pitchStatus.style.color = 'var(--accent-color)';
+    }
+
+    // Update Financials
+    document.getElementById('upfront-price').textContent = `$${upfront}`;
+    document.getElementById('monthly-price').textContent = `$${monthly}`;
+
+    const btns = [
+      document.querySelector('.btn-payment-system'),
+      document.querySelector('.btn-subscription')
+    ];
+    btns.forEach(btn => {
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.add('active');
+      }
+    });
+  },
+
+  /** Update domain handshake state */
+  readyDomainShipment() {
+    const status = document.getElementById('domain-status');
+    if (status) {
+      status.textContent = 'READY_TO_SHIP';
+      status.style.color = '#00ff00';
+    }
+    const btn = document.querySelector('.btn-ship-domain');
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.add('active');
     }
   }
 };
