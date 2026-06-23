@@ -55,10 +55,11 @@ const PipelineUI = {
   },
 
   /** Log message to terminal stream */
-  log(message) {
+  log(message, isSubLog = false) {
     if (!this._terminal) return;
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-    const line = `[${timestamp}] ${message}\n`;
+    const prefix = isSubLog ? '  >> ' : `[${timestamp}] `;
+    const line = `${prefix}${message}\n`;
     this._logBuffer += line;
     this._terminal.textContent = this._logBuffer;
     this._terminal.scrollTop = this._terminal.scrollHeight;
@@ -74,16 +75,19 @@ const PipelineUI = {
 
   /** Update Vercel/Framer mount points */
   updateMounts(stageId) {
-    if (stageId === 1) {
+    if (stageId === 3) {
       const v = document.querySelector('#section-vercel .placeholder-area p');
-      if (v) v.innerHTML = '<span style="color:#00ff00">✓ VERCEL_BUILD_PROTOTYPE_DEPLOYED</span><br>URL: https://aura-prototype-921.vercel.app';
+      if (v) v.innerHTML = '<span style="color:#00ff00">✓ ENGINE_PRODUCTION_BUILD_COMPILED</span><br>ARTIFACT: /dist/index.html';
 
       const pm = document.getElementById('live-preview-mount');
       if (pm) pm.style.display = 'none';
       const iframe = document.getElementById('preview-iframe');
-      if (iframe) iframe.style.display = 'block';
+      if (iframe) {
+        iframe.style.display = 'block';
+        iframe.src = '/dist/index.html';
+      }
     }
-    if (stageId === 2) {
+    if (stageId === 4) {
       const f = document.querySelector('#section-framer .placeholder-area p');
       if (f) f.innerHTML = '<span style="color:#00ff00">✓ FRAMER_VISUAL_CANVAS_SYNCED</span><br>WSS: CONNECTED // SESSION_ID: ' + Math.random().toString(36).substring(7);
 
@@ -95,17 +99,46 @@ const PipelineUI = {
     }
   },
 
-  /** Update delivery links */
-  renderDelivery(pitch) {
+  /** Update delivery links and financial UI */
+  renderDelivery(pitch, upfront, monthly) {
     const links = document.querySelectorAll('.link-url');
-    if (links[0]) links[0].textContent = 'https://aura-prototype-921.vercel.app';
-    if (links[1]) links[1].textContent = 'https://framer.com/projects/aura-polish-v14';
+    if (links[0]) links[0].textContent = 'https://engine-prototype-921.vercel.app';
+    if (links[1]) links[1].textContent = 'https://framer.com/projects/engine-polish-v14';
     if (links[2]) links[2].textContent = 'github.com/techart484/delivery-repo';
 
     const pitchStatus = document.querySelector('.pitch-status');
     if (pitchStatus) {
       pitchStatus.textContent = '// PITCH DRAFTED: ' + pitch.substring(0, 60) + '...';
       pitchStatus.style.color = 'var(--accent-color)';
+    }
+
+    // Update Financials
+    document.getElementById('upfront-price').textContent = `$${upfront}`;
+    document.getElementById('monthly-price').textContent = `$${monthly}`;
+
+    const btns = [
+      document.querySelector('.btn-payment-system'),
+      document.querySelector('.btn-subscription')
+    ];
+    btns.forEach(btn => {
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.add('active');
+      }
+    });
+  },
+
+  /** Update domain handshake state */
+  readyDomainShipment() {
+    const status = document.getElementById('domain-status');
+    if (status) {
+      status.textContent = 'READY_TO_SHIP';
+      status.style.color = '#00ff00';
+    }
+    const btn = document.querySelector('.btn-ship-domain');
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.add('active');
     }
   }
 };

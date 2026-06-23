@@ -33,7 +33,7 @@ function httpGet(path) {
 async function main() {
   console.log('');
   console.log('╔══════════════════════════════════════════════════════╗');
-  console.log('║   AURA AI Engine — Ollama Model Health Check         ║');
+  console.log('║   AI Engine — Ollama Model Health Check              ║');
   console.log('╚══════════════════════════════════════════════════════╝');
   console.log(`\n[*] Checking Ollama at ${OLLAMA_HOST}:${OLLAMA_PORT}...\n`);
 
@@ -113,7 +113,7 @@ async function main() {
   console.log('\n' + '─'.repeat(56));
   if (allOk) {
     console.log('  ✅ AI Engine is READY — all required models available');
-    console.log('     Run the pipeline from the AURA dashboard → ⚡ AI Pipeline tab');
+    console.log('     Run the pipeline from the Engine dashboard → ⚡ AI Pipeline tab');
   } else {
     console.log('  ❌ AI Engine NOT READY — missing required models');
     console.log('\n  Install missing models:');

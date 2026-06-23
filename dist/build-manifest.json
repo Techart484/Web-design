@@ -1,13 +1,14 @@
 {
-  "generated_at": "2026-06-16T21:29:03.250Z",
-  "business_name": "Test Dental Clinic",
-  "business_domain": "testdentalclinic.com",
-  "contact_email": "info@testdental.com",
-  "form_action": "mailto:info@testdental.com",
+  "generated_at": "2026-06-23T02:41:30.142Z",
+  "business_name": "DEFAULT PROFESSIONAL",
+  "business_domain": "defaultprofessional.com",
+  "contact_email": "uplink@example.com",
+  "form_action": "mailto:uplink@example.com",
   "brand_colors": {
-    "primary": "#8B5CF6",
+    "primary": "#334488",
     "secondary": "#F43F5E",
     "accent": "#06B6D4",
-    "bg": "#06050B"
+    "bg": "#06050B",
+    "detected_industry": "default"
   }
 }

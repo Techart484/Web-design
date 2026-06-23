@@ -59,15 +59,40 @@ function initEngineUI() {
         PipelineUI.log('ERROR: PITCH_DATA_NOT_READY (COMPLETE_PIPELINE_FIRST)');
         return;
       }
-      downloadTextFile(manifest.delivery_artifacts.b2b_pitch, 'b2b-client-pitch.md');
+      // Use the advanced delivery bundle downloader if possible
+      if (typeof B2bPitch !== 'undefined') {
+        B2bPitch.downloadDeliveryBundle(manifest);
+      } else {
+        downloadTextFile(manifest.delivery_artifacts.b2b_pitch, 'b2b-client-pitch.md');
+      }
     });
   }
 
-  // 5. Recheck Credentials
+  // 5. Recheck Credentials & Backend
   const recheckBtn = document.querySelector('.recheck-btn');
   if (recheckBtn) {
-    recheckBtn.addEventListener('click', () => {
-      PipelineUI.log('SYSTEM_AUTH_RECHECK: ALL_SYSTEMS_GO');
+    recheckBtn.addEventListener('click', async () => {
+      PipelineUI.log('SYSTEM_AUTH_RECHECK: INITIATING...');
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          PipelineUI.log(`SYSTEM_BACKEND: ${data.status.toUpperCase()}`);
+          PipelineUI.log(`SYSTEM_SCRIPTS: ${data.scripts ? 'READY' : 'MISSING'}`);
+
+          const statusMsg = document.querySelector('.status-msg');
+          if (statusMsg) statusMsg.textContent = 'ENGINE_BACKEND_CONNECTED • EXECUTION UNLOCKED';
+        } else {
+          throw new Error('BACKEND_OFFLINE');
+        }
+      } catch (err) {
+        PipelineUI.log('SYSTEM_AUTH_RECHECK: FAILED_TO_CONNECT_BACKEND');
+        const statusMsg = document.querySelector('.status-msg');
+        if (statusMsg) {
+          statusMsg.textContent = 'ENGINE_OFFLINE • START_SERVER_TO_ENABLE';
+          statusMsg.style.color = '#ff0000';
+        }
+      }
     });
   }
 }

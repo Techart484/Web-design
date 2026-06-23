@@ -1,5 +1,5 @@
 # ============================================================
-# AURA Autonomous Web Designer Engine — Ollama Setup Script
+# Autonomous Web Designer Engine — Ollama Setup Script
 # Installs Ollama + pulls Qwen 2.5 Coder & DeepSeek Coder V2
 # Run as: powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1
 # ============================================================
@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   AURA Autonomous Engine — AI Model Setup                    ║" -ForegroundColor Cyan
+Write-Host "║   Autonomous Web Designer Engine — AI Model Setup            ║" -ForegroundColor Cyan
 Write-Host "║   Installing: Ollama + Qwen 2.5 Coder + DeepSeek Coder       ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
@@ -198,7 +198,7 @@ try {
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║   ✅  AURA AI Engine Setup Complete!                          ║" -ForegroundColor Green
+Write-Host "║   ✅  AI Engine Setup Complete!                               ║" -ForegroundColor Green
 Write-Host "║                                                              ║" -ForegroundColor Green
 Write-Host "║   Open index.html in your browser and click:                 ║" -ForegroundColor Green
 Write-Host "║   ⚡ AI Pipeline → Run Full Pipeline                          ║" -ForegroundColor Green
