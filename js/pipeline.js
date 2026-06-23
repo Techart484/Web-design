@@ -162,7 +162,6 @@ const Pipeline = {
 
         PipelineUI.renderDelivery(pitch, upfront, monthly);
         await new Promise(r => setTimeout(r, 1000));
-        PipelineUI.readyDomainShipment();
         break;
     }
   },

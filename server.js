@@ -19,8 +19,14 @@ app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 
 /** Helper for executing scripts with promise */
 function runScript(cmd, args, env = process.env) {
+  // Portability: handle python3 vs python
+  let finalCmd = cmd;
+  if (cmd === 'python3' && process.platform === 'win32') {
+    finalCmd = 'python';
+  }
+
   return new Promise((resolve, reject) => {
-    execFile(cmd, args, { env }, (err, stdout, stderr) => {
+    execFile(finalCmd, args, { env }, (err, stdout, stderr) => {
       if (err) {
         reject({ err, stderr, stdout });
       } else {
