@@ -55,10 +55,11 @@ const PipelineUI = {
   },
 
   /** Log message to terminal stream */
-  log(message) {
+  log(message, isSubLog = false) {
     if (!this._terminal) return;
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-    const line = `[${timestamp}] ${message}\n`;
+    const prefix = isSubLog ? '  >> ' : `[${timestamp}] `;
+    const line = `${prefix}${message}\n`;
     this._logBuffer += line;
     this._terminal.textContent = this._logBuffer;
     this._terminal.scrollTop = this._terminal.scrollHeight;
@@ -74,7 +75,7 @@ const PipelineUI = {
 
   /** Update Vercel/Framer mount points */
   updateMounts(stageId) {
-    if (stageId === 1) {
+    if (stageId === 3) {
       const v = document.querySelector('#section-vercel .placeholder-area p');
       if (v) v.innerHTML = '<span style="color:#00ff00">✓ ENGINE_PRODUCTION_BUILD_COMPILED</span><br>ARTIFACT: /dist/index.html';
 
@@ -86,7 +87,7 @@ const PipelineUI = {
         iframe.src = '/dist/index.html';
       }
     }
-    if (stageId === 2) {
+    if (stageId === 4) {
       const f = document.querySelector('#section-framer .placeholder-area p');
       if (f) f.innerHTML = '<span style="color:#00ff00">✓ FRAMER_VISUAL_CANVAS_SYNCED</span><br>WSS: CONNECTED // SESSION_ID: ' + Math.random().toString(36).substring(7);
 

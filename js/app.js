@@ -59,7 +59,12 @@ function initEngineUI() {
         PipelineUI.log('ERROR: PITCH_DATA_NOT_READY (COMPLETE_PIPELINE_FIRST)');
         return;
       }
-      downloadTextFile(manifest.delivery_artifacts.b2b_pitch, 'b2b-client-pitch.md');
+      // Use the advanced delivery bundle downloader if possible
+      if (typeof B2bPitch !== 'undefined') {
+        B2bPitch.downloadDeliveryBundle(manifest);
+      } else {
+        downloadTextFile(manifest.delivery_artifacts.b2b_pitch, 'b2b-client-pitch.md');
+      }
     });
   }
 

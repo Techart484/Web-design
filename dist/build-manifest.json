@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-06-23T00:32:22.512Z",
+  "generated_at": "2026-06-23T02:41:30.142Z",
   "business_name": "DEFAULT PROFESSIONAL",
   "business_domain": "defaultprofessional.com",
-  "contact_email": "uplink@www.google.com",
-  "form_action": "mailto:uplink@www.google.com",
+  "contact_email": "uplink@example.com",
+  "form_action": "mailto:uplink@example.com",
   "brand_colors": {
-    "primary": "#0b57d0",
-    "secondary": "#001d35",
-    "accent": "#f8f9fa",
-    "bg": "#06050b",
+    "primary": "#334488",
+    "secondary": "#F43F5E",
+    "accent": "#06B6D4",
+    "bg": "#06050B",
     "detected_industry": "default"
   }
 }

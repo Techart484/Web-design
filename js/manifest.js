@@ -131,14 +131,14 @@ const BrandManifest = {
   /** Persist to localStorage */
   _persist() {
     try {
-      localStorage.setItem('aura_manifest', JSON.stringify(this._data));
+      localStorage.setItem('engine_manifest', JSON.stringify(this._data));
     } catch (e) { /* storage full — non-fatal */ }
   },
 
   /** Load from localStorage or reset */
   load() {
     try {
-      const stored = localStorage.getItem('aura_manifest');
+      const stored = localStorage.getItem('engine_manifest');
       if (stored) {
         this._data = JSON.parse(stored);
         // Migrate: ensure all schema keys exist on old data

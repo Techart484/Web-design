@@ -1,7 +1,7 @@
 @echo off
 echo.
 echo ============================================================
-echo  AURA AI Model Setup - Run this in a normal terminal window
+echo  AI Model Setup - Run this in a normal terminal window
 echo ============================================================
 echo.
 echo Starting Ollama server...

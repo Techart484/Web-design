@@ -210,7 +210,7 @@ ${(pipeline_status?.stages || []).map(s =>
     zip.generateAsync({ type: 'blob' }).then(content => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(content);
-      a.download = `aura-delivery-${manifest.client.domain || 'project'}-${new Date().toISOString().split('T')[0]}.zip`;
+      a.download = `engine-delivery-${manifest.client.domain || 'project'}-${new Date().toISOString().split('T')[0]}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

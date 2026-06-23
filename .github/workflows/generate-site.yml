@@ -1,4 +1,4 @@
-name: AURA Autonomous Web Designer Engine — Production Pipeline
+name: Autonomous Web Designer Engine — Production Pipeline
 
 on:
   workflow_dispatch:
@@ -174,7 +174,7 @@ jobs:
           else
             INDUSTRY="${{ needs.brand-extract.outputs.industry }}"
             PRIMARY="${{ needs.brand-extract.outputs.primary_color }}"
-            git commit -m "🚀 Deploy: AURA Pipeline build [${INDUSTRY}] primary=${PRIMARY} [skip ci]"
+            git commit -m "🚀 Deploy: Engine Pipeline build [${INDUSTRY}] primary=${PRIMARY} [skip ci]"
             git push origin main
             echo "✅ Production distribution committed and pushed"
           fi
@@ -184,7 +184,7 @@ jobs:
           node -e "
           const fs = require('fs');
           const brand = JSON.parse(fs.readFileSync('brand_colors.json','utf8'));
-          const pitch = \`# B2B Pitch — AURA Pipeline Build
+          const pitch = \`# B2B Pitch — Engine Pipeline Build
           
 Generated: \${new Date().toISOString()}
 Industry: \${brand.detected_industry || 'default'}

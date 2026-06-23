@@ -17,72 +17,102 @@ app.use('/js', express.static(path.join(ROOT, 'js')));
 app.use('/dist', express.static(path.join(ROOT, 'dist')));
 app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 
-/** Run Full Pipeline Endpoint */
-app.post('/api/pipeline/run', (req, res) => {
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: 'URL is required' });
-
-  // Simple URL validation/sanitization
-  if (!/^https?:\/\/[^\s$.?#].[^\s]*$/gm.test(url)) {
-    return res.status(400).json({ error: 'Invalid URL format' });
-  }
-
-  console.log(`[*] Initiating real pipeline for: ${url}`);
-
-  // Step 1: Extract Brand (Security: use execFile for argument isolation)
-  execFile('python3', ['scripts/extract_brand.py', url], (err, stdout, stderr) => {
-    if (err) {
-      console.error(`[Extract Error] ${stderr}`);
-      return res.status(500).json({ error: 'Brand extraction failed', details: stderr });
-    }
-
-    let brandData;
-    try {
-      // The script prints the JSON to stdout as the last line
-      const lines = stdout.trim().split('\n');
-      brandData = JSON.parse(lines[lines.length - 1]);
-    } catch (e) {
-      return res.status(500).json({ error: 'Failed to parse brand data', details: stdout });
-    }
-
-    // Step 2: Generate Site
-    const businessName = (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
-    const env = {
-      ...process.env,
-      BUSINESS_NAME: businessName,
-      CONTACT_EMAIL: 'uplink@' + (url.replace('https://', '').replace('http://', '').split('/')[0] || 'domain.com'),
-      FORMSPREE_HASH: ''
-    };
-
-    // Security: Use absolute path for scripts
-    const generateScript = path.join(ROOT, 'scripts/generate.js');
-
-    execFile('node', [generateScript], { env }, (genErr, genStdout, genStderr) => {
-      if (genErr) {
-        console.error(`[Generate Error] ${genStderr}`);
-        return res.status(500).json({ error: 'Site generation failed', details: genStderr });
+/** Helper for executing scripts with promise */
+function runScript(cmd, args, env = process.env) {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, { env }, (err, stdout, stderr) => {
+      if (err) {
+        reject({ err, stderr, stdout });
+      } else {
+        resolve({ stdout, stderr });
       }
-
-      // Step 3: Build CSS (Tailwind)
-      // Security: use npm directly to run defined script
-      exec('npm run build:css', (cssErr, cssStdout, cssStderr) => {
-        // We don't fail if CSS build fails (might not have tailwind cli in sandbox), but we log it
-        if (cssErr) console.warn(`[CSS Build Warning] ${cssStderr}`);
-
-        res.json({
-          success: true,
-          brand: brandData,
-          previewUrl: '/dist/index.html',
-          logs: stdout + genStdout
-        });
-      });
     });
   });
+}
+
+/**
+ * Granular Pipeline Endpoint
+ * Supports individual stages for better UI feedback
+ */
+app.post('/api/pipeline/stage/:id', async (req, res) => {
+  const stageId = parseInt(req.params.id);
+  const { url, industry } = req.body;
+
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  try {
+    switch (stageId) {
+      case 1: { // Brand Extraction
+        console.log(`[*] Stage 1: Extraction for ${url}`);
+        const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url]);
+        const lines = stdout.trim().split('\n');
+        const brandData = JSON.parse(lines[lines.length - 1]);
+        return res.json({ success: true, data: brandData, logs: stdout });
+      }
+
+      case 2: { // Competitor Analysis
+        console.log(`[*] Stage 2: Competitor Analysis for ${url}`);
+        const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default']);
+        const lines = stdout.trim().split('\n');
+        const analysisData = JSON.parse(lines[lines.length - 1]);
+        return res.json({ success: true, data: analysisData, logs: stdout });
+      }
+
+      case 3: { // Site Generation
+        console.log(`[*] Stage 3: Site Generation for ${url}`);
+        // Load brand data from previous stage output file
+        const brandPath = path.join(ROOT, 'brand_colors.json');
+        const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
+
+        const businessName = (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
+        const env = {
+          ...process.env,
+          BUSINESS_NAME: businessName,
+          CONTACT_EMAIL: 'uplink@' + (url.replace('https://', '').replace('http://', '').split('/')[0] || 'domain.com'),
+          FORMSPREE_HASH: ''
+        };
+
+        const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], env);
+
+        // Build CSS
+        await new Promise((resolve) => {
+          exec('npm run build:css', (err, stdout) => {
+            if (err) console.warn('[CSS Build Warning]', err);
+            resolve(stdout);
+          });
+        });
+
+        return res.json({
+          success: true,
+          previewUrl: '/dist/index.html',
+          logs: genStdout
+        });
+      }
+
+      default:
+        // Stages 4-6 are currently simulated in frontend or logic-only
+        return res.json({ success: true, message: `Stage ${stageId} processed successfully (logic-only).` });
+    }
+  } catch (error) {
+    console.error(`[Stage ${stageId} Error]`, error.stderr || error.message);
+    res.status(500).json({
+      error: `Stage ${stageId} failed`,
+      details: error.stderr || error.message,
+      logs: error.stdout
+    });
+  }
 });
 
 /** System Health Check */
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'online', scripts: fs.existsSync(path.join(ROOT, 'scripts/extract_brand.py')) });
+  res.json({
+    status: 'online',
+    scripts: {
+      extract: fs.existsSync(path.join(ROOT, 'scripts/extract_brand.py')),
+      generate: fs.existsSync(path.join(ROOT, 'scripts/generate.js')),
+      analyze: fs.existsSync(path.join(ROOT, 'scripts/analyze_competitors.js'))
+    }
+  });
 });
 
 app.listen(PORT, () => {

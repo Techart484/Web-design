@@ -21,34 +21,14 @@ const Pipeline = {
     BrandManifest.patch('client', { url: clientUrl, domain: this._extractDomain(clientUrl) });
 
     try {
-      // Execute the real work on the backend
-      PipelineUI.setStageStatus(1, 'running');
-      PipelineUI.log('STAGE_1_START: BRAND_BIBLE_EXTRACTION');
-
-      const response = await fetch('/api/pipeline/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: clientUrl })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Pipeline execution failed');
+      // Execute Stages 1-3 on the backend
+      for (let n = 1; n <= 3; n++) {
+        if (this._aborted) return;
+        await this.runStage(n);
       }
 
-      const data = await response.json();
-
-      // Update Manifest with real data
-      BrandManifest.patch('colors', data.brand);
-      BrandManifest.patch('industry', data.brand.detected_industry);
-
-      PipelineUI.setStageStatus(1, 'complete');
-      PipelineUI.log('STAGE_1_SUCCESS: BRAND_BIBLE_EXTRACTION');
-      PipelineUI.log(`NICHE_DETECTED: ${data.brand.detected_industry.toUpperCase()}`);
-      PipelineUI.updateMounts(1);
-
-      // Fast-track through simulation stages 2-5 for UI continuity
-      for (let n = 2; n <= 5; n++) {
+      // Simulation Stages 4-5 for UI continuity
+      for (let n = 4; n <= 5; n++) {
         if (this._aborted) return;
         await this.runStage(n);
       }
@@ -59,7 +39,7 @@ const Pipeline = {
       PipelineUI.log('PIPELINE_SUCCESS: ALL_STAGES_COMPLETE');
     } catch (err) {
       PipelineUI.log(`PIPELINE_ERROR: ${err.message.toUpperCase()}`);
-      PipelineUI.setStageStatus(1, 'error');
+      // The individual stage method handles UI status updates
     } finally {
       this._running = false;
     }
@@ -80,7 +60,47 @@ const Pipeline = {
     PipelineUI.log(`STAGE_${n}_START: ${stageNames[n]}`);
 
     try {
-      await this._simulateWork(n);
+      if (n <= 3) {
+        // REAL WORK: Call Backend
+        const manifest = BrandManifest.get();
+        const response = await fetch(`/api/pipeline/stage/${n}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: manifest.client.url,
+            industry: manifest.industry
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || `Stage ${n} failed`);
+        }
+
+        const result = await response.json();
+
+        // Update manifest/UI based on backend data
+        if (n === 1) {
+          BrandManifest.patch('colors', result.data);
+          BrandManifest.patch('industry', result.data.detected_industry);
+          PipelineUI.log(`NICHE_DETECTED: ${result.data.detected_industry.toUpperCase()}`);
+        } else if (n === 2) {
+          BrandManifest.patch('analysis', result.data);
+          PipelineUI.log(`OWNABLE_ANGLE: ${result.data.ownable_angle.toUpperCase()}`);
+        } else if (n === 3) {
+          PipelineUI.log('ENGINE_PRODUCTION_BUILD_COMPILED');
+        }
+
+        // Output backend logs to terminal
+        if (result.logs) {
+          result.logs.split('\n').forEach(line => {
+            if (line.trim()) PipelineUI.log(line.trim(), true); // true = sub-log
+          });
+        }
+      } else {
+        // SIMULATED WORK
+        await this._simulateWork(n);
+      }
 
       PipelineUI.setStageStatus(n, 'complete');
       PipelineUI.log(`STAGE_${n}_SUCCESS: ${stageNames[n]}`);
@@ -94,25 +114,7 @@ const Pipeline = {
 
   /** Simulate Stage Work */
   async _simulateWork(n) {
-    // Stage-specific simulation logic
     switch(n) {
-      case 1:
-        PipelineUI.log('CRAWLING_TARGET: ' + BrandManifest.get().client.url);
-        await new Promise(r => setTimeout(r, 2000));
-        PipelineUI.log('NICHE_DETECTED: HIGH-END_SERVICE_PROVIDER');
-        PipelineUI.log('COLORS_IDENTIFIED: #C19A5B, #060606');
-        break;
-      case 2:
-        PipelineUI.log('ANALYZING_NICHE_RIVALS...');
-        await new Promise(r => setTimeout(r, 1500));
-        PipelineUI.log('OWNABLE_ANGLE: PREMIUM_AUTHORITY_AUTONOMY');
-        break;
-      case 3:
-        PipelineUI.log('SELECTING_INDUSTRY_GRADE_COMPONENTS...');
-        PipelineUI.log('MOUNTING_BRUTALIST_NAV_V4...');
-        PipelineUI.log('INJECTING_DYNAMIC_SERVICES_GRID...');
-        await new Promise(r => setTimeout(r, 2500));
-        break;
       case 4:
         PipelineUI.log('APPLYING_MOTION_SIGNATURE...');
         PipelineUI.log('CALIBRATING_HAIRLINE_PRECISION...');
@@ -125,18 +127,37 @@ const Pipeline = {
         break;
       case 6:
         PipelineUI.log('GENERATING_STRIPE_INVOICE_LEDGER...');
-        const upfront = Math.floor(Math.random() * (1800 - 600 + 1) + 600);
-        const monthly = Math.floor(Math.random() * (250 - 150 + 1) + 150);
+
+        const manifest = BrandManifest.get();
+        const industry = manifest.industry || 'default';
+        let baseUpfront = 1200;
+        let baseMonthly = 200;
+
+        if (industry === 'medical' || industry === 'legal') {
+          baseUpfront = 1800;
+          baseMonthly = 250;
+        } else if (industry === 'saas') {
+          baseUpfront = 1500;
+          baseMonthly = 180;
+        }
+
+        const upfront = Math.floor(baseUpfront * (0.8 + Math.random() * 0.4));
+        const monthly = Math.floor(baseMonthly * (0.9 + Math.random() * 0.2));
 
         PipelineUI.log(`FINANCIALS_CALIBRATED: UPFRONT $${upfront} // MONTHLY $${monthly}`);
         PipelineUI.log('PREPARING_DOMAIN_HANDSHAKE_PROTOCOL...');
 
-        const pitch = `We have modernized your presence using an industry-grade component stack. Total upfront value: $${upfront}. Monthly maintenance & tech-stack upkeep: $${monthly}. Ready for domain shipment.`;
+        BrandManifest.patch('delivery_artifacts', {
+          upfront_price: upfront,
+          monthly_price: monthly
+        });
+
+        const pitch = B2bPitch.generateOfflinePitch(manifest);
+        const monitor = B2bPitch.generateMaintenanceMonitor(manifest);
 
         BrandManifest.patch('delivery_artifacts', {
           b2b_pitch: pitch,
-          upfront_price: upfront,
-          monthly_price: monthly
+          maintenance_monitor: monitor
         });
 
         PipelineUI.renderDelivery(pitch, upfront, monthly);
