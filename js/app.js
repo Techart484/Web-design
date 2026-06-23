@@ -63,11 +63,31 @@ function initEngineUI() {
     });
   }
 
-  // 5. Recheck Credentials
+  // 5. Recheck Credentials & Backend
   const recheckBtn = document.querySelector('.recheck-btn');
   if (recheckBtn) {
-    recheckBtn.addEventListener('click', () => {
-      PipelineUI.log('SYSTEM_AUTH_RECHECK: ALL_SYSTEMS_GO');
+    recheckBtn.addEventListener('click', async () => {
+      PipelineUI.log('SYSTEM_AUTH_RECHECK: INITIATING...');
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          PipelineUI.log(`SYSTEM_BACKEND: ${data.status.toUpperCase()}`);
+          PipelineUI.log(`SYSTEM_SCRIPTS: ${data.scripts ? 'READY' : 'MISSING'}`);
+
+          const statusMsg = document.querySelector('.status-msg');
+          if (statusMsg) statusMsg.textContent = 'ENGINE_BACKEND_CONNECTED • EXECUTION UNLOCKED';
+        } else {
+          throw new Error('BACKEND_OFFLINE');
+        }
+      } catch (err) {
+        PipelineUI.log('SYSTEM_AUTH_RECHECK: FAILED_TO_CONNECT_BACKEND');
+        const statusMsg = document.querySelector('.status-msg');
+        if (statusMsg) {
+          statusMsg.textContent = 'ENGINE_OFFLINE • START_SERVER_TO_ENABLE';
+          statusMsg.style.color = '#ff0000';
+        }
+      }
     });
   }
 }

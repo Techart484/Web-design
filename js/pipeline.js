@@ -7,7 +7,7 @@ const Pipeline = {
   _running: false,
   _aborted: false,
 
-  /** Run Full Pipeline */
+  /** Run Full Pipeline (Real Backend Mode) */
   async run(clientUrl) {
     if (this._running) return;
     this._running = true;
@@ -15,26 +15,51 @@ const Pipeline = {
 
     PipelineUI.open();
     PipelineUI.log('INITIATING_AUTONOMOUS_PIPELINE...');
+    PipelineUI.log('CONNECTING_TO_PRODUCTION_ENGINE_BACKEND...');
 
     BrandManifest.init();
     BrandManifest.patch('client', { url: clientUrl, domain: this._extractDomain(clientUrl) });
 
     try {
-      await this.runStage(1);
-      if (this._aborted) return;
-      await this.runStage(2);
-      if (this._aborted) return;
-      await this.runStage(3);
-      if (this._aborted) return;
-      await this.runStage(4);
-      if (this._aborted) return;
-      await this.runStage(5);
-      if (this._aborted) return;
+      // Execute the real work on the backend
+      PipelineUI.setStageStatus(1, 'running');
+      PipelineUI.log('STAGE_1_START: BRAND_BIBLE_EXTRACTION');
+
+      const response = await fetch('/api/pipeline/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: clientUrl })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Pipeline execution failed');
+      }
+
+      const data = await response.json();
+
+      // Update Manifest with real data
+      BrandManifest.patch('colors', data.brand);
+      BrandManifest.patch('industry', data.brand.detected_industry);
+
+      PipelineUI.setStageStatus(1, 'complete');
+      PipelineUI.log('STAGE_1_SUCCESS: BRAND_BIBLE_EXTRACTION');
+      PipelineUI.log(`NICHE_DETECTED: ${data.brand.detected_industry.toUpperCase()}`);
+      PipelineUI.updateMounts(1);
+
+      // Fast-track through simulation stages 2-5 for UI continuity
+      for (let n = 2; n <= 5; n++) {
+        if (this._aborted) return;
+        await this.runStage(n);
+      }
+
+      // Final Stage 6: Delivery
       await this.runStage(6);
 
       PipelineUI.log('PIPELINE_SUCCESS: ALL_STAGES_COMPLETE');
     } catch (err) {
       PipelineUI.log(`PIPELINE_ERROR: ${err.message.toUpperCase()}`);
+      PipelineUI.setStageStatus(1, 'error');
     } finally {
       this._running = false;
     }

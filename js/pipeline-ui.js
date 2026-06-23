@@ -76,12 +76,15 @@ const PipelineUI = {
   updateMounts(stageId) {
     if (stageId === 1) {
       const v = document.querySelector('#section-vercel .placeholder-area p');
-      if (v) v.innerHTML = '<span style="color:#00ff00">✓ VERCEL_BUILD_PROTOTYPE_DEPLOYED</span><br>URL: https://engine-prototype-921.vercel.app';
+      if (v) v.innerHTML = '<span style="color:#00ff00">✓ ENGINE_PRODUCTION_BUILD_COMPILED</span><br>ARTIFACT: /dist/index.html';
 
       const pm = document.getElementById('live-preview-mount');
       if (pm) pm.style.display = 'none';
       const iframe = document.getElementById('preview-iframe');
-      if (iframe) iframe.style.display = 'block';
+      if (iframe) {
+        iframe.style.display = 'block';
+        iframe.src = '/dist/index.html';
+      }
     }
     if (stageId === 2) {
       const f = document.querySelector('#section-framer .placeholder-area p');

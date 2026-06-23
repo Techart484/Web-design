@@ -1,13 +1,14 @@
 {
-  "generated_at": "2026-06-16T21:29:03.250Z",
-  "business_name": "Test Dental Clinic",
-  "business_domain": "testdentalclinic.com",
-  "contact_email": "info@testdental.com",
-  "form_action": "mailto:info@testdental.com",
+  "generated_at": "2026-06-23T00:09:05.542Z",
+  "business_name": "SAAS PROFESSIONAL",
+  "business_domain": "saasprofessional.com",
+  "contact_email": "uplink@www.apple.com",
+  "form_action": "mailto:uplink@www.apple.com",
   "brand_colors": {
-    "primary": "#8B5CF6",
-    "secondary": "#F43F5E",
-    "accent": "#06B6D4",
-    "bg": "#06050B"
+    "primary": "#f4f8fb",
+    "secondary": "#9fc6f4",
+    "accent": "#a4618d",
+    "bg": "#06050b",
+    "detected_industry": "saas"
   }
 }

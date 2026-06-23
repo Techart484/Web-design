@@ -4,32 +4,44 @@
   "description": "Autonomous 6-stage web design pipeline with AI brand extraction, competitor matrix, motion library, and production-grade export. Powered by Ollama (Qwen 2.5 Coder + DeepSeek Coder V2).",
   "main": "scripts/generate.js",
   "scripts": {
-    "extract":         "python scripts/extract_brand.py",
-    "generate":        "node scripts/generate.js",
-    "build:css":       "npx @tailwindcss/cli -i ./templates/master-landing-page/styles.css -o ./dist/styles.css --minify",
-    "build":           "npm run generate && npm run build:css",
-    "pipeline":        "npm run extract && npm run build",
-    "pipeline:full":   "npm run extract && npm run build && node scripts/install-models.js",
-    "ai:setup":        "powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1",
-    "ai:setup:small":  "powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1 -SmallModels",
-    "ai:check":        "node scripts/install-models.js",
-    "ai:status":       "ollama list",
-    "dev":             "start index.html",
-    "lint":            "node -e \"const {html, css} = require('./js/exporter'); console.log('Exporter OK');\""
+    "extract": "python scripts/extract_brand.py",
+    "generate": "node scripts/generate.js",
+    "build:css": "npx @tailwindcss/cli -i ./templates/master-landing-page/styles.css -o ./dist/styles.css --minify",
+    "build": "npm run generate && npm run build:css",
+    "pipeline": "npm run extract && npm run build",
+    "pipeline:full": "npm run extract && npm run build && node scripts/install-models.js",
+    "ai:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1",
+    "ai:setup:small": "powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1 -SmallModels",
+    "ai:check": "node scripts/install-models.js",
+    "ai:status": "ollama list",
+    "start": "node server.js",
+    "dev": "start index.html",
+    "lint": "node -e \"const {html, css} = require('./js/exporter'); console.log('Exporter OK');\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Techart484/Web-design.git"
   },
   "keywords": [
-    "web-design", "automation", "landing-page", "ai-pipeline",
-    "ollama", "qwen", "deepseek", "brand-extraction", "competitor-analysis",
-    "no-code", "design-system", "motion-library"
+    "web-design",
+    "automation",
+    "landing-page",
+    "ai-pipeline",
+    "ollama",
+    "qwen",
+    "deepseek",
+    "brand-extraction",
+    "competitor-analysis",
+    "no-code",
+    "design-system",
+    "motion-library"
   ],
   "author": "Techart484",
   "license": "MIT",
   "dependencies": {
     "@tailwindcss/cli": "^4.3.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "tailwindcss": "^4.3.0"
   },
   "engines": {
