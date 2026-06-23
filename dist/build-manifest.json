@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-06-23T00:09:05.542Z",
-  "business_name": "SAAS PROFESSIONAL",
-  "business_domain": "saasprofessional.com",
-  "contact_email": "uplink@www.apple.com",
-  "form_action": "mailto:uplink@www.apple.com",
+  "generated_at": "2026-06-23T00:32:22.512Z",
+  "business_name": "DEFAULT PROFESSIONAL",
+  "business_domain": "defaultprofessional.com",
+  "contact_email": "uplink@www.google.com",
+  "form_action": "mailto:uplink@www.google.com",
   "brand_colors": {
-    "primary": "#f4f8fb",
-    "secondary": "#9fc6f4",
-    "accent": "#a4618d",
+    "primary": "#0b57d0",
+    "secondary": "#001d35",
+    "accent": "#f8f9fa",
     "bg": "#06050b",
-    "detected_industry": "saas"
+    "detected_industry": "default"
   }
 }

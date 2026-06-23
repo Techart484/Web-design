@@ -46,7 +46,7 @@ app.post('/api/pipeline/run', (req, res) => {
     }
 
     // Step 2: Generate Site
-    const businessName = brandData.detected_industry.toUpperCase() + " PROFESSIONAL";
+    const businessName = (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
     const env = {
       ...process.env,
       BUSINESS_NAME: businessName,
@@ -54,17 +54,18 @@ app.post('/api/pipeline/run', (req, res) => {
       FORMSPREE_HASH: ''
     };
 
-    const generateCmd = `node scripts/generate.js`;
-    exec(generateCmd, { env }, (genErr, genStdout, genStderr) => {
+    // Security: Use absolute path for scripts
+    const generateScript = path.join(ROOT, 'scripts/generate.js');
+
+    execFile('node', [generateScript], { env }, (genErr, genStdout, genStderr) => {
       if (genErr) {
         console.error(`[Generate Error] ${genStderr}`);
         return res.status(500).json({ error: 'Site generation failed', details: genStderr });
       }
 
       // Step 3: Build CSS (Tailwind)
-      // Note: In this environment, we might just use the prestored styles.css if tailwind isn't configured for a quick dist build
-      const buildCssCmd = `npm run build:css`;
-      exec(buildCssCmd, (cssErr, cssStdout, cssStderr) => {
+      // Security: use npm directly to run defined script
+      exec('npm run build:css', (cssErr, cssStdout, cssStderr) => {
         // We don't fail if CSS build fails (might not have tailwind cli in sandbox), but we log it
         if (cssErr) console.warn(`[CSS Build Warning] ${cssStderr}`);
 
