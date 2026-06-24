@@ -76,6 +76,13 @@ const PipelineUI = {
     const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
     const prefix = isSubLog ? '  >> ' : `[${timestamp}] `;
     const line = `${prefix}${message}\n`;
+
+    // Clear placeholder on first real log
+    if (this._terminal.textContent.includes('awaiting execution')) {
+      this._terminal.textContent = '';
+      this._logBuffer = '';
+    }
+
     this._logBuffer += line;
     this._terminal.textContent = this._logBuffer;
     this._terminal.scrollTop = this._terminal.scrollHeight;

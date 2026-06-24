@@ -54,7 +54,7 @@ Built for B2B scale, it automates the entire journey from brand extraction to Ve
     npm start
     ```
 2.  **Open the Control Center**
-    Launch `index.html` in your browser.
+    Navigate to `http://localhost:8000` in your browser.
 3.  **Execute**
     Enter a target URL and hit `▷ EXECUTE PIPELINE`.
 

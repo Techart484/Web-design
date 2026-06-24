@@ -64,10 +64,19 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
   }
 
   try {
+    // Collect API keys from headers or body
+    const apiKeys = {
+      FIRECRAWL_API_KEY: req.body.firecrawl_key || process.env.FIRECRAWL_API_KEY || '',
+      GEMINI_API_KEY: req.body.gemini_key || process.env.GEMINI_API_KEY || '',
+      GITHUB_TOKEN: req.body.github_token || process.env.GITHUB_TOKEN || ''
+    };
+
+    const env = { ...process.env, ...apiKeys };
+
     switch (stageId) {
       case 1: { // Brand Extraction
         console.log(`[*] Stage 1: Extraction for ${url}`);
-        const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url]);
+        const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url], env);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract brand data from script output.');
         return res.json({ success: true, data: data, logs: stdout });
@@ -75,7 +84,7 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
 
       case 2: { // Competitor Analysis
         console.log(`[*] Stage 2: Competitor Analysis for ${url}`);
-        const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default']);
+        const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default'], env);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract competitor analysis from script output.');
         return res.json({ success: true, data: data, logs: stdout });
