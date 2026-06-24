@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 /**
- * Autonomous Web Designer Engine — Hardened Site Generator (v2.1)
- * FIX: Recursive directory creation
- * FIX: Minified Tailwind CSS compilation check
- * FIX: Detailed build manifest with timestamping
+ * Autonomous Web Designer Engine — Sharpened Generator (v2.2)
+ * Modular component assembly system.
  */
 
 const fs   = require('fs');
@@ -26,7 +24,13 @@ if (fs.existsSync(brandJsonPath)) {
   } catch (err) { console.warn('[!] Failed to parse brand_colors.json'); }
 }
 
-// Load Template
+// Helper: Load Component
+function loadComponent(type, name = 'default') {
+  const p = path.join(ROOT, 'templates', 'components', type, `${name}.html`);
+  return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : `<!-- Component ${type}/${name} missing -->`;
+}
+
+// Load Master Template
 const templatePath = path.join(ROOT, 'templates', 'master-landing-page', 'index.html');
 if (!fs.existsSync(templatePath)) {
   console.error('[ERROR] Master template missing.');
@@ -35,7 +39,19 @@ if (!fs.existsSync(templatePath)) {
 
 let html = fs.readFileSync(templatePath, 'utf8');
 
-// Replace Placeholders
+// Build Page from Components
+const components = {
+  '{{NAV}}': loadComponent('nav'),
+  '{{HERO}}': loadComponent('hero'),
+  '{{FEATURES}}': loadComponent('features'),
+  '{{FOOTER}}': loadComponent('footer')
+};
+
+Object.entries(components).forEach(([token, content]) => {
+  html = html.split(token).join(content);
+});
+
+// Replace Global Placeholders
 const substitutions = {
   '{{BUSINESS_NAME}}': businessName,
   '{{BUSINESS_DOMAIN}}': contactEmail.split('@')[1] || 'domain.com',
@@ -43,7 +59,8 @@ const substitutions = {
   '{{PRIMARY_COLOR}}': brandColors.primary,
   '{{ACCENT_COLOR}}': brandColors.accent,
   '{{SECONDARY_COLOR}}': brandColors.secondary,
-  '{{BG_COLOR}}': brandColors.bg
+  '{{BG_COLOR}}': brandColors.bg,
+  '{{YEAR}}': new Date().getFullYear()
 };
 
 Object.entries(substitutions).forEach(([token, value]) => {
@@ -66,12 +83,12 @@ fs.writeFileSync(path.join(distDir, 'index.html'), html);
 // Generate Build Manifest
 const manifest = {
   timestamp: new Date().toISOString(),
-  engine_version: "2.1.0",
+  engine_version: "2.2.0",
   business_name: businessName,
   contact: contactEmail,
   brand: brandColors,
-  artifacts: ["index.html", "styles.css"]
+  artifacts: ["index.html"]
 };
 fs.writeFileSync(path.join(distDir, 'build-manifest.json'), JSON.stringify(manifest, null, 2));
 
-console.log('[✓] Hardened site generated in /dist');
+console.log('[✓] Sharpened site assembled in /dist');

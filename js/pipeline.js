@@ -53,12 +53,19 @@ const Pipeline = {
     try {
       // REAL WORK: Call Backend
       const manifest = BrandManifest.get();
+      const secrets = {
+        firecrawl_key: document.getElementById('firecrawl-key')?.value || '',
+        gemini_key: document.getElementById('gemini-key')?.value || '',
+        github_token: document.getElementById('github-token')?.value || ''
+      };
+
       const response = await fetch(`/api/pipeline/stage/${n}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: manifest.client.url,
-          industry: manifest.industry
+          industry: manifest.industry,
+          ...secrets
         })
       });
 

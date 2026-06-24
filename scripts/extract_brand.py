@@ -78,9 +78,26 @@ def detect_industry(url, html_content=''):
         if re.search(pattern, text): return ind
     return 'default'
 
+def extract_via_firecrawl(url, api_key):
+    """Fallback to Firecrawl if API key is present."""
+    try:
+        import http.client
+        conn = http.client.HTTPSConnection("api.firecrawl.dev")
+        payload = json.dumps({"url": url, "mode": "scrape", "onlyMainContent": True})
+        headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'}
+        conn.request("POST", "/v0/scrape", payload, headers)
+        res = conn.getresponse()
+        data = res.read().decode("utf-8")
+        result = json.loads(data)
+        if result.get('success'):
+            return result['data'].get('content', '')
+    except: pass
+    return None
+
 def main():
     target_url = sys.argv[1] if len(sys.argv) > 1 else ''
     industry_hint = sys.argv[2].lower() if len(sys.argv) > 2 else 'default'
+    firecrawl_key = os.environ.get('FIRECRAWL_API_KEY')
 
     theme = None
     detected_industry = industry_hint
@@ -88,9 +105,16 @@ def main():
     if target_url:
         if not target_url.startswith('http'): target_url = 'https://' + target_url
         try:
-            req = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=8) as res:
-                html = res.read().decode('utf-8', errors='ignore')
+            html = None
+            if firecrawl_key:
+                print("[*] Firecrawl API detected. Attempting deep scrape...")
+                html = extract_via_firecrawl(target_url, firecrawl_key)
+
+            if not html:
+                print("[*] Falling back to local scraper...")
+                req = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=8) as res:
+                    html = res.read().decode('utf-8', errors='ignore')
                 if industry_hint == 'default': detected_industry = detect_industry(target_url, html)
                 colors = extract_colors_weighted(html)
                 if colors:
