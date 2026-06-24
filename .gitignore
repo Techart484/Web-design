@@ -1,25 +1,29 @@
-# Node.js dependencies
+# Dependencies
 node_modules/
-npm-debug.log*
+package-lock.json
 
-# Generated brand scan output (ephemeral per run)
+# Build and Artifacts
+dist/
+*.zip
+delivery_bundle.zip
+
+# Transient Data
 brand_colors.json
-
-# OS artifacts
-.DS_Store
-Thumbs.db
-
-# Editor configs
-.vscode/
-.idea/
-
-# Environment variables
-.env
-.env.local
+competitor_analysis.json
 
 # Logs
 *.log
-server.log
+npm-debug.log*
 
-# Verification artifacts
+# Environment
+.env
+.env.*
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Verification
 verification/

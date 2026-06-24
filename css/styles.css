@@ -23,7 +23,6 @@ body.premium-brutalist {
   color: var(--text-color);
   font-family: var(--font-mono);
   font-size: 11px;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.4;
   overflow-x: hidden;
@@ -130,6 +129,7 @@ body.premium-brutalist {
 .section-title {
   font-weight: 700;
   color: var(--text-color);
+  text-transform: uppercase;
 }
 
 /* Secrets */
@@ -289,6 +289,7 @@ body.premium-brutalist {
   font-weight: 800;
   font-size: 11px;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 .btn-reset {
@@ -341,6 +342,7 @@ body.premium-brutalist {
   font-weight: 800;
   margin-bottom: 8px;
   color: var(--text-color);
+  text-transform: uppercase;
 }
 
 .stage-desc {

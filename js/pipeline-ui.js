@@ -1,6 +1,6 @@
 // ============================================================
 // AUTONOMOUS WEB DESIGNER ENGINE — Pipeline UI Controller
-// v2.0 — Premium Brutalist Terminal & Stage Orchestration
+// v2.1 — Premium Brutalist Terminal & Stage Orchestration
 // ============================================================
 
 const PipelineUI = {
@@ -57,6 +57,10 @@ const PipelineUI = {
     }
     const iframe = document.getElementById('preview-iframe');
     if (iframe) iframe.style.display = 'none';
+
+    // Remove existing download button if any
+    const existingDl = document.getElementById('btn-download-bundle');
+    if (existingDl) existingDl.remove();
   },
 
   /** Update Stage Status Indicator */
@@ -77,12 +81,22 @@ const PipelineUI = {
     this._terminal.scrollTop = this._terminal.scrollHeight;
   },
 
-  /** Stream partial AI response to terminal */
-  logStream(chunk) {
-    if (!this._terminal) return;
-    this._logBuffer += chunk;
-    this._terminal.textContent = this._logBuffer;
-    this._terminal.scrollTop = this._terminal.scrollHeight;
+  /** Enable Download Button */
+  enableDownload(url) {
+    const deliveryActions = document.querySelector('.delivery-links');
+    if (!deliveryActions) return;
+
+    let dlBtn = document.getElementById('btn-download-bundle');
+    if (!dlBtn) {
+      dlBtn = document.createElement('button');
+      dlBtn.id = 'btn-download-bundle';
+      dlBtn.className = 'btn-execute';
+      dlBtn.style.marginTop = '20px';
+      dlBtn.style.width = '100%';
+      dlBtn.textContent = '📥 DOWNLOAD DELIVERY BUNDLE (.ZIP)';
+      dlBtn.onclick = () => window.location.href = url;
+      deliveryActions.appendChild(dlBtn);
+    }
   },
 
   /** Update Vercel/Framer mount points */
@@ -108,6 +122,28 @@ const PipelineUI = {
         wssStatus.textContent = '● WSS CONNECTED';
         wssStatus.style.color = '#00ff00';
       }
+    }
+
+    // Auto-render financials if stage 6 completes
+    if (stageId === 6) {
+      const manifest = BrandManifest.get();
+      const industry = manifest.industry || 'default';
+      let baseUpfront = 1200;
+      let baseMonthly = 200;
+
+      if (industry === 'medical' || industry === 'legal') {
+        baseUpfront = 1800;
+        baseMonthly = 250;
+      } else if (industry === 'saas') {
+        baseUpfront = 1500;
+        baseMonthly = 180;
+      }
+
+      const upfront = Math.floor(baseUpfront * (0.8 + Math.random() * 0.4));
+      const monthly = Math.floor(baseMonthly * (0.9 + Math.random() * 0.2));
+
+      const pitch = B2bPitch.generateOfflinePitch(manifest);
+      this.renderDelivery(pitch, upfront, monthly);
     }
   },
 
@@ -144,7 +180,6 @@ const PipelineUI = {
 // ============================================================
 const Toast = {
   show(message, type = 'info') {
-    // In this premium brutalist design, we might just log to terminal or use a very minimal toast
     PipelineUI.log(`SYSTEM_${type.toUpperCase()}: ${message}`);
   }
 };
