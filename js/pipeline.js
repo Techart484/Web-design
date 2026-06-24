@@ -1,6 +1,6 @@
 // ============================================================
 // AUTONOMOUS WEB DESIGNER ENGINE — 6-Stage Pipeline
-// v2.0 — Aligned with B2B Control Center Stages
+// v2.1 — Hardened Backend Integration & Delivery Actions
 // ============================================================
 
 const Pipeline = {
@@ -21,20 +21,11 @@ const Pipeline = {
     BrandManifest.patch('client', { url: clientUrl, domain: this._extractDomain(clientUrl) });
 
     try {
-      // Execute Stages 1-3 on the backend
-      for (let n = 1; n <= 3; n++) {
+      // Execute all 6 Stages on the backend
+      for (let n = 1; n <= 6; n++) {
         if (this._aborted) return;
         await this.runStage(n);
       }
-
-      // Simulation Stages 4-5 for UI continuity
-      for (let n = 4; n <= 5; n++) {
-        if (this._aborted) return;
-        await this.runStage(n);
-      }
-
-      // Final Stage 6: Delivery
-      await this.runStage(6);
 
       PipelineUI.log('PIPELINE_SUCCESS: ALL_STAGES_COMPLETE');
     } catch (err) {
@@ -53,53 +44,59 @@ const Pipeline = {
       3: 'INDUSTRY_STACK_CODEGEN',
       4: 'PREMIUM_BRUTALIST_POLISH',
       5: 'SELF_FIXING_CRITIQUE',
-      6: 'DELIVERY_FINANCIALS_SYNC'
+      6: 'DELIVERY_BUNDLE_GEN'
     };
 
     PipelineUI.setStageStatus(n, 'running');
     PipelineUI.log(`STAGE_${n}_START: ${stageNames[n]}`);
 
     try {
-      if (n <= 3) {
-        // REAL WORK: Call Backend
-        const manifest = BrandManifest.get();
-        const response = await fetch(`/api/pipeline/stage/${n}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: manifest.client.url,
-            industry: manifest.industry
-          })
+      // REAL WORK: Call Backend
+      const manifest = BrandManifest.get();
+      const response = await fetch(`/api/pipeline/stage/${n}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: manifest.client.url,
+          industry: manifest.industry
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Stage ${n} failed`);
+      }
+
+      const result = await response.json();
+
+      // Update manifest/UI based on backend data
+      if (n === 1) {
+        BrandManifest.patch('colors', result.data);
+        BrandManifest.patch('industry', result.data.detected_industry);
+        PipelineUI.log(`NICHE_DETECTED: ${result.data.detected_industry.toUpperCase()}`);
+      } else if (n === 2) {
+        BrandManifest.patch('analysis', result.data);
+        PipelineUI.log(`OWNABLE_ANGLE: ${result.data.ownable_angle.toUpperCase()}`);
+      } else if (n === 3) {
+        PipelineUI.log('ENGINE_PRODUCTION_BUILD_COMPILED');
+      } else if (n === 4) {
+        PipelineUI.log('MOTION_SIGNATURE_CALIBRATED');
+      } else if (n === 5) {
+        if (result.data && result.data.audit_score) {
+          PipelineUI.log(`AUDIT_SCORE: ${result.data.audit_score}/100`);
+        } else {
+          PipelineUI.log('AUDIT_COMPLETE');
+        }
+      } else if (n === 6) {
+        PipelineUI.log('DELIVERY_BUNDLE_READY_FOR_HANDOFF');
+        PipelineUI.enableDownload(result.bundleUrl);
+      }
+
+      // Output backend logs to terminal
+      if (result.logs) {
+        result.logs.split('\n').forEach(line => {
+          if (line.trim()) PipelineUI.log(line.trim(), true); // true = sub-log
         });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || `Stage ${n} failed`);
-        }
-
-        const result = await response.json();
-
-        // Update manifest/UI based on backend data
-        if (n === 1) {
-          BrandManifest.patch('colors', result.data);
-          BrandManifest.patch('industry', result.data.detected_industry);
-          PipelineUI.log(`NICHE_DETECTED: ${result.data.detected_industry.toUpperCase()}`);
-        } else if (n === 2) {
-          BrandManifest.patch('analysis', result.data);
-          PipelineUI.log(`OWNABLE_ANGLE: ${result.data.ownable_angle.toUpperCase()}`);
-        } else if (n === 3) {
-          PipelineUI.log('ENGINE_PRODUCTION_BUILD_COMPILED');
-        }
-
-        // Output backend logs to terminal
-        if (result.logs) {
-          result.logs.split('\n').forEach(line => {
-            if (line.trim()) PipelineUI.log(line.trim(), true); // true = sub-log
-          });
-        }
-      } else {
-        // SIMULATED WORK
-        await this._simulateWork(n);
       }
 
       PipelineUI.setStageStatus(n, 'complete');
@@ -109,61 +106,6 @@ const Pipeline = {
       PipelineUI.setStageStatus(n, 'error');
       PipelineUI.log(`STAGE_${n}_FAIL: ${err.message.toUpperCase()}`);
       throw err;
-    }
-  },
-
-  /** Simulate Stage Work */
-  async _simulateWork(n) {
-    switch(n) {
-      case 4:
-        PipelineUI.log('APPLYING_MOTION_SIGNATURE...');
-        PipelineUI.log('CALIBRATING_HAIRLINE_PRECISION...');
-        await new Promise(r => setTimeout(r, 1200));
-        break;
-      case 5:
-        PipelineUI.log('RUNNING_SELF_FIX_CRITIQUE...');
-        await new Promise(r => setTimeout(r, 2000));
-        PipelineUI.log('AUDIT_SCORE: 99/100');
-        break;
-      case 6:
-        PipelineUI.log('GENERATING_STRIPE_INVOICE_LEDGER...');
-
-        const manifest = BrandManifest.get();
-        const industry = manifest.industry || 'default';
-        let baseUpfront = 1200;
-        let baseMonthly = 200;
-
-        if (industry === 'medical' || industry === 'legal') {
-          baseUpfront = 1800;
-          baseMonthly = 250;
-        } else if (industry === 'saas') {
-          baseUpfront = 1500;
-          baseMonthly = 180;
-        }
-
-        const upfront = Math.floor(baseUpfront * (0.8 + Math.random() * 0.4));
-        const monthly = Math.floor(baseMonthly * (0.9 + Math.random() * 0.2));
-
-        PipelineUI.log(`FINANCIALS_CALIBRATED: UPFRONT $${upfront} // MONTHLY $${monthly}`);
-        PipelineUI.log('PREPARING_DOMAIN_HANDSHAKE_PROTOCOL...');
-
-        BrandManifest.patch('delivery_artifacts', {
-          upfront_price: upfront,
-          monthly_price: monthly
-        });
-
-        const pitch = B2bPitch.generateOfflinePitch(manifest);
-        const monitor = B2bPitch.generateMaintenanceMonitor(manifest);
-
-        BrandManifest.patch('delivery_artifacts', {
-          b2b_pitch: pitch,
-          maintenance_monitor: monitor
-        });
-
-        PipelineUI.renderDelivery(pitch, upfront, monthly);
-        await new Promise(r => setTimeout(r, 1000));
-        PipelineUI.readyDomainShipment();
-        break;
     }
   },
 

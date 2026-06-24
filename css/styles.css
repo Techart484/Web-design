@@ -23,7 +23,6 @@ body.premium-brutalist {
   color: var(--text-color);
   font-family: var(--font-mono);
   font-size: 11px;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.4;
   overflow-x: hidden;
@@ -130,6 +129,7 @@ body.premium-brutalist {
 .section-title {
   font-weight: 700;
   color: var(--text-color);
+  text-transform: uppercase;
 }
 
 /* Secrets */
@@ -289,6 +289,7 @@ body.premium-brutalist {
   font-weight: 800;
   font-size: 11px;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 .btn-reset {
@@ -341,6 +342,7 @@ body.premium-brutalist {
   font-weight: 800;
   margin-bottom: 8px;
   color: var(--text-color);
+  text-transform: uppercase;
 }
 
 .stage-desc {
@@ -401,56 +403,6 @@ body.premium-brutalist {
   grid-template-columns: repeat(3, 1fr);
 }
 
-.financial-card {
-  padding: 20px;
-  border-right: var(--hairline);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.financial-card:last-child {
-  border-right: none;
-}
-
-.card-meta {
-  font-size: 9px;
-  color: var(--text-muted);
-}
-
-.card-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--accent-color);
-}
-
-.card-range {
-  font-size: 9px;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.btn-payment-system, .btn-subscription, .btn-ship-domain {
-  background: transparent;
-  border: 1px solid var(--text-muted);
-  color: var(--text-muted);
-  padding: 8px 12px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  width: 100%;
-  cursor: not-allowed;
-}
-
-.btn-payment-system.active, .btn-subscription.active, .btn-ship-domain.active {
-  border-color: var(--accent-color);
-  color: var(--text-color);
-  cursor: pointer;
-}
-
-.btn-payment-system.active:hover, .btn-subscription.active:hover, .btn-ship-domain.active:hover {
-  background: var(--accent-color);
-  color: #000;
-}
 
 /* Delivery Grid */
 .delivery-grid {
@@ -471,6 +423,7 @@ body.premium-brutalist {
   border: var(--hairline);
   padding: 15px;
   margin-bottom: 20px;
+  border-left: 3px solid var(--accent-color);
 }
 
 .flow-title {

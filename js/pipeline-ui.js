@@ -1,6 +1,6 @@
 // ============================================================
 // AUTONOMOUS WEB DESIGNER ENGINE — Pipeline UI Controller
-// v2.0 — Premium Brutalist Terminal & Stage Orchestration
+// v2.1 — Premium Brutalist Terminal & Stage Orchestration
 // ============================================================
 
 const PipelineUI = {
@@ -38,6 +38,18 @@ const PipelineUI = {
     const framerPlaceholder = document.querySelector('#section-framer .placeholder-area p');
     if (framerPlaceholder) framerPlaceholder.textContent = '// Premium Brutalist package will mount after Stage 2 finishes';
 
+    const flowAStatus = document.querySelector('.delivery-col:nth-child(1) .flow-status');
+    if (flowAStatus) {
+      flowAStatus.textContent = '// PRICING TIER CALIBRATES AFTER STAGE 4 COMPLETES';
+      flowAStatus.style.color = 'var(--text-muted)';
+    }
+
+    const flowBStatus = document.querySelector('.delivery-col:nth-child(2) .flow-status');
+    if (flowBStatus) {
+      flowBStatus.textContent = '// MONITOR ARMS AFTER STAGE 4 COMPLETES';
+      flowBStatus.style.color = 'var(--text-muted)';
+    }
+
     const previewMount = document.getElementById('live-preview-mount');
     if (previewMount) {
       previewMount.style.display = 'block';
@@ -45,6 +57,10 @@ const PipelineUI = {
     }
     const iframe = document.getElementById('preview-iframe');
     if (iframe) iframe.style.display = 'none';
+
+    // Remove existing download button if any
+    const existingDl = document.getElementById('btn-download-bundle');
+    if (existingDl) existingDl.remove();
   },
 
   /** Update Stage Status Indicator */
@@ -65,12 +81,22 @@ const PipelineUI = {
     this._terminal.scrollTop = this._terminal.scrollHeight;
   },
 
-  /** Stream partial AI response to terminal */
-  logStream(chunk) {
-    if (!this._terminal) return;
-    this._logBuffer += chunk;
-    this._terminal.textContent = this._logBuffer;
-    this._terminal.scrollTop = this._terminal.scrollHeight;
+  /** Enable Download Button */
+  enableDownload(url) {
+    const deliveryActions = document.querySelector('.delivery-links');
+    if (!deliveryActions) return;
+
+    let dlBtn = document.getElementById('btn-download-bundle');
+    if (!dlBtn) {
+      dlBtn = document.createElement('button');
+      dlBtn.id = 'btn-download-bundle';
+      dlBtn.className = 'btn-execute';
+      dlBtn.style.marginTop = '20px';
+      dlBtn.style.width = '100%';
+      dlBtn.textContent = '📥 DOWNLOAD DELIVERY BUNDLE (.ZIP)';
+      dlBtn.onclick = () => window.location.href = url;
+      deliveryActions.appendChild(dlBtn);
+    }
   },
 
   /** Update Vercel/Framer mount points */
@@ -97,48 +123,54 @@ const PipelineUI = {
         wssStatus.style.color = '#00ff00';
       }
     }
+
+    // Auto-render financials if stage 6 completes
+    if (stageId === 6) {
+      const manifest = BrandManifest.get();
+      const industry = manifest.industry || 'default';
+      let baseUpfront = 1200;
+      let baseMonthly = 200;
+
+      if (industry === 'medical' || industry === 'legal') {
+        baseUpfront = 1800;
+        baseMonthly = 250;
+      } else if (industry === 'saas') {
+        baseUpfront = 1500;
+        baseMonthly = 180;
+      }
+
+      const upfront = Math.floor(baseUpfront * (0.8 + Math.random() * 0.4));
+      const monthly = Math.floor(baseMonthly * (0.9 + Math.random() * 0.2));
+
+      const pitch = B2bPitch.generateOfflinePitch(manifest);
+      this.renderDelivery(pitch, upfront, monthly);
+    }
   },
 
   /** Update delivery links and financial UI */
   renderDelivery(pitch, upfront, monthly) {
     const links = document.querySelectorAll('.link-url');
-    if (links[0]) links[0].textContent = 'https://engine-prototype-921.vercel.app';
-    if (links[1]) links[1].textContent = 'https://framer.com/projects/engine-polish-v14';
-    if (links[2]) links[2].textContent = 'github.com/techart484/delivery-repo';
+    if (links[0]) links[0].textContent = 'HTTPS://ENGINE-PROTOTYPE-921.VERCEL.APP';
+    if (links[1]) links[1].textContent = 'HTTPS://FRAMER.COM/PROJECTS/ENGINE-POLISH-V14';
+    if (links[2]) links[2].textContent = 'GITHUB.COM/TECHART484/DELIVERY-REPO';
 
     const pitchStatus = document.querySelector('.pitch-status');
     if (pitchStatus) {
-      pitchStatus.textContent = '// PITCH DRAFTED: ' + pitch.substring(0, 60) + '...';
+      pitchStatus.textContent = '// PITCH DRAFTED: ' + pitch.substring(0, 60).toUpperCase() + '...';
       pitchStatus.style.color = 'var(--accent-color)';
     }
 
-    // Update Financials
-    document.getElementById('upfront-price').textContent = `$${upfront}`;
-    document.getElementById('monthly-price').textContent = `$${monthly}`;
-
-    const btns = [
-      document.querySelector('.btn-payment-system'),
-      document.querySelector('.btn-subscription')
-    ];
-    btns.forEach(btn => {
-      if (btn) {
-        btn.disabled = false;
-        btn.classList.add('active');
-      }
-    });
-  },
-
-  /** Update domain handshake state */
-  readyDomainShipment() {
-    const status = document.getElementById('domain-status');
-    if (status) {
-      status.textContent = 'READY_TO_SHIP';
-      status.style.color = '#00ff00';
+    // Update Flow Statuses
+    const flowAStatus = document.querySelector('.delivery-col:nth-child(1) .flow-status');
+    if (flowAStatus) {
+      flowAStatus.textContent = `// UPFRONT ASSET VALUED AT $${upfront}`;
+      flowAStatus.style.color = '#00ff00';
     }
-    const btn = document.querySelector('.btn-ship-domain');
-    if (btn) {
-      btn.disabled = false;
-      btn.classList.add('active');
+
+    const flowBStatus = document.querySelector('.delivery-col:nth-child(2) .flow-status');
+    if (flowBStatus) {
+      flowBStatus.textContent = `// MAINTENANCE MONITOR ACTIVE: $${monthly}/MO`;
+      flowBStatus.style.color = '#00ff00';
     }
   }
 };
@@ -148,7 +180,6 @@ const PipelineUI = {
 // ============================================================
 const Toast = {
   show(message, type = 'info') {
-    // In this premium brutalist design, we might just log to terminal or use a very minimal toast
     PipelineUI.log(`SYSTEM_${type.toUpperCase()}: ${message}`);
   }
 };

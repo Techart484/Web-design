@@ -2,7 +2,7 @@
 /**
  * Autonomous Web Designer Engine — Competitor Analysis Script
  * Performs niche research using Ollama (Qwen 2.5 Coder)
- * v2 FIXED: Proper error handling for missing Ollama
+ * v2.1 — Machine-readable output (JSON to stdout, logs to stderr)
  */
 
 const { spawn } = require('child_process');
@@ -29,8 +29,7 @@ async function queryOllama(prompt) {
       });
 
       child.on('error', (err) => {
-        // This catches ENOENT (ollama not found)
-        console.warn(`[!] Ollama execution error: ${err.message}`);
+        process.stderr.write(`[!] Ollama execution error: ${err.message}\n`);
         resolve(null);
       });
 
@@ -38,20 +37,20 @@ async function queryOllama(prompt) {
         if (code === 0) {
           resolve(output.trim());
         } else {
-          console.warn(`[!] Ollama failed with code ${code}.`);
+          process.stderr.write(`[!] Ollama failed with code ${code}.\n`);
           resolve(null);
         }
       });
     } catch (e) {
-      console.warn(`[!] Failed to spawn Ollama: ${e.message}`);
+      process.stderr.write(`[!] Failed to spawn Ollama: ${e.message}\n`);
       resolve(null);
     }
   });
 }
 
 async function analyze() {
-  console.log(`[*] Initiating Competitor Matrix Analysis for: ${targetUrl}`);
-  console.log(`[*] Industry Context: ${industry}`);
+  process.stderr.write(`[*] Initiating Competitor Matrix Analysis for: ${targetUrl}\n`);
+  process.stderr.write(`[*] Industry Context: ${industry}\n`);
 
   const prompt = `Analyze the business niche for ${targetUrl} in the ${industry} industry.
   1. List 3 top competitors.
@@ -69,12 +68,12 @@ async function analyze() {
       }
     }
   } catch (err) {
-    console.warn('[!] Error during Ollama analysis:', err.message);
+    process.stderr.write(`[!] Error during Ollama analysis: ${err.message}\n`);
   }
 
-  // Fallback data if AI fails or Ollama is missing
+  // Fallback data
   if (!analysis) {
-    console.log('[!] Using industry-standard fallback for positioning.');
+    process.stderr.write('[!] Using industry-standard fallback for positioning.\n');
     analysis = {
       competitors: [
         `${industry}-market-leader.com`,
@@ -92,8 +91,10 @@ async function analyze() {
 
   const outputPath = path.join(ROOT, 'competitor_analysis.json');
   fs.writeFileSync(outputPath, JSON.stringify(analysis, null, 2));
-  console.log(`[✓] Competitor Matrix Analysis complete. Saved to: ${outputPath}`);
-  console.log(JSON.stringify(analysis));
+  process.stderr.write(`[✓] Competitor Matrix Analysis complete. Saved to: ${outputPath}\n`);
+
+  // Final result to stdout
+  process.stdout.write(JSON.stringify(analysis));
 }
 
 analyze();

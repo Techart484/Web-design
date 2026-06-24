@@ -3,6 +3,7 @@ const { exec, execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const JSZip = require('jszip');
 
 const app = express();
 const PORT = 8000;
@@ -19,9 +20,16 @@ app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 
 /** Helper for executing scripts with promise */
 function runScript(cmd, args, env = process.env) {
+  let finalCmd = cmd;
+  if (cmd === 'python3' && process.platform === 'win32') {
+    finalCmd = 'python';
+  }
+
   return new Promise((resolve, reject) => {
-    execFile(cmd, args, { env }, (err, stdout, stderr) => {
-      if (err) {
+    execFile(finalCmd, args, { env }, (err, stdout, stderr) => {
+      // We resolve even on stderr as long as there is stdout,
+      // but reject on actual execution errors.
+      if (err && !stdout) {
         reject({ err, stderr, stdout });
       } else {
         resolve({ stdout, stderr });
@@ -30,40 +38,55 @@ function runScript(cmd, args, env = process.env) {
   });
 }
 
+/** Robustly extract JSON from script output */
+function extractJson(stdout) {
+  const lines = stdout.trim().split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const line = lines[i].trim();
+    if (line.startsWith('{') && line.endsWith('}')) {
+      try {
+        return JSON.parse(line);
+      } catch (e) { /* continue */ }
+    }
+  }
+  return null;
+}
+
 /**
- * Granular Pipeline Endpoint
- * Supports individual stages for better UI feedback
+ * Centralized Pipeline Controller
  */
 app.post('/api/pipeline/stage/:id', async (req, res) => {
   const stageId = parseInt(req.params.id);
   const { url, industry } = req.body;
 
-  if (!url) return res.status(400).json({ error: 'URL is required' });
+  if (!url && stageId <= 3) {
+    return res.status(400).json({ error: 'URL is required for initial stages' });
+  }
 
   try {
     switch (stageId) {
       case 1: { // Brand Extraction
         console.log(`[*] Stage 1: Extraction for ${url}`);
         const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url]);
-        const lines = stdout.trim().split('\n');
-        const brandData = JSON.parse(lines[lines.length - 1]);
-        return res.json({ success: true, data: brandData, logs: stdout });
+        const data = extractJson(stdout);
+        if (!data) throw new Error('Failed to extract brand data from script output.');
+        return res.json({ success: true, data: data, logs: stdout });
       }
 
       case 2: { // Competitor Analysis
         console.log(`[*] Stage 2: Competitor Analysis for ${url}`);
         const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default']);
-        const lines = stdout.trim().split('\n');
-        const analysisData = JSON.parse(lines[lines.length - 1]);
-        return res.json({ success: true, data: analysisData, logs: stdout });
+        const data = extractJson(stdout);
+        if (!data) throw new Error('Failed to extract competitor analysis from script output.');
+        return res.json({ success: true, data: data, logs: stdout });
       }
 
       case 3: { // Site Generation
         console.log(`[*] Stage 3: Site Generation for ${url}`);
-        // Load brand data from previous stage output file
         const brandPath = path.join(ROOT, 'brand_colors.json');
-        const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
+        if (!fs.existsSync(brandPath)) throw new Error('Brand data missing. Run Stage 1 first.');
 
+        const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
         const businessName = (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
         const env = {
           ...process.env,
@@ -74,32 +97,76 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
 
         const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], env);
 
-        // Build CSS
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           exec('npm run build:css', (err, stdout) => {
-            if (err) console.warn('[CSS Build Warning]', err);
+            if (err) return reject(err);
             resolve(stdout);
           });
         });
 
+        return res.json({ success: true, previewUrl: '/dist/index.html', logs: genStdout });
+      }
+
+      case 4: { // Visual Polish
+        console.log(`[*] Stage 4: Visual Polish`);
+        const { stdout } = await runScript('node', ['scripts/polish.js']);
+        const data = extractJson(stdout);
+        if (!data) throw new Error('Failed to extract polish data from script output.');
+        return res.json({ success: true, data, logs: stdout });
+      }
+
+      case 5: { // Self-Fixing Critique
+        console.log(`[*] Stage 5: Critique`);
+        const { stdout } = await runScript('node', ['scripts/critique.js']);
+        const data = extractJson(stdout);
+        if (!data) throw new Error('Failed to extract critique data from script output.');
+        return res.json({ success: true, data, logs: stdout });
+      }
+
+      case 6: { // Final Validation & Delivery Bundle
+        console.log(`[*] Stage 6: Packaging Delivery Bundle`);
+        const zip = new JSZip();
+        const distPath = path.join(ROOT, 'dist');
+
+        if (!fs.existsSync(distPath)) throw new Error('Build artifacts missing. Run Stage 3 first.');
+
+        const files = fs.readdirSync(distPath);
+        files.forEach(file => {
+          const content = fs.readFileSync(path.join(distPath, file));
+          zip.file(file, content);
+        });
+
+        const buffer = await zip.generateAsync({ type: 'nodebuffer' });
+        const bundlePath = path.join(ROOT, 'delivery_bundle.zip');
+        fs.writeFileSync(bundlePath, buffer);
+
         return res.json({
           success: true,
-          previewUrl: '/dist/index.html',
-          logs: genStdout
+          bundleUrl: '/api/download/bundle',
+          message: 'Delivery bundle generated successfully.'
         });
       }
 
       default:
-        // Stages 4-6 are currently simulated in frontend or logic-only
-        return res.json({ success: true, message: `Stage ${stageId} processed successfully (logic-only).` });
+        return res.json({ success: true, message: `Stage ${stageId} completed (logic-only).` });
     }
   } catch (error) {
     console.error(`[Stage ${stageId} Error]`, error.stderr || error.message);
     res.status(500).json({
       error: `Stage ${stageId} failed`,
       details: error.stderr || error.message,
-      logs: error.stdout
+      logs: error.stdout || ''
     });
+  }
+});
+
+/** Download Delivery Bundle */
+app.get('/api/download/bundle', (req, res) => {
+  const bundlePath = path.join(ROOT, 'delivery_bundle.zip');
+  if (fs.existsSync(bundlePath)) {
+    res.download(bundlePath, 'autonomous_design_delivery.zip');
+  } else {
+    res.status(404).send('Bundle not found');
   }
 });
 
