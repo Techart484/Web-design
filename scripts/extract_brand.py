@@ -94,6 +94,44 @@ def extract_via_firecrawl(url, api_key):
     except: pass
     return None
 
+def extract_brand_entities(html):
+    """Extract Company Name, USP, and Features from HTML."""
+    entities = {
+        'name': 'Default Professional',
+        'usp': 'Next-Generation Digital Excellence',
+        'features': []
+    }
+
+    if not html:
+        return entities
+
+    # Extract Name (from <title> or <h1>)
+    title_match = re.search(r'<title>(.*?)</title>', html, re.I | re.S)
+    if title_match:
+        title_text = title_match.group(1).split('|')[0].split('-')[0].strip()
+        if title_text: entities['name'] = title_text
+
+    # Extract USP (from meta description or first <h2>)
+    desc_match = re.search(r'<meta[^>]*name=["\']description["\'][^>]*content=["\'](.*?)["\']', html, re.I | re.S)
+    if desc_match:
+        entities['usp'] = desc_match.group(1).strip()
+    else:
+        h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', html, re.I | re.S)
+        if h2_match:
+            entities['usp'] = re.sub('<[^<]+?>', '', h2_match.group(1)).strip()
+
+    # Extract Features (look for lists or groups of h3/h4)
+    # This is a heuristic: looking for <li> items in sections that might be "features"
+    feature_matches = re.findall(r'<h3[^>]*>(.*?)</h3>', html, re.I | re.S)
+    if feature_matches:
+        entities['features'] = [re.sub('<[^<]+?>', '', f).strip() for f in feature_matches[:6] if len(f.strip()) > 3]
+
+    if not entities['features']:
+        li_matches = re.findall(r'<li>(.*?)</li>', html, re.I | re.S)
+        entities['features'] = [re.sub('<[^<]+?>', '', f).strip() for f in li_matches[:6] if 10 < len(f.strip()) < 100]
+
+    return entities
+
 def main():
     target_url = sys.argv[1] if len(sys.argv) > 1 else ''
     industry_hint = sys.argv[2].lower() if len(sys.argv) > 2 else 'default'
@@ -101,6 +139,11 @@ def main():
 
     theme = None
     detected_industry = industry_hint
+    entities = {
+        'name': 'Default Professional',
+        'usp': 'Next-Generation Digital Excellence',
+        'features': []
+    }
 
     if target_url:
         if not target_url.startswith('http'): target_url = 'https://' + target_url
@@ -115,6 +158,8 @@ def main():
                 req = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=8) as res:
                     html = res.read().decode('utf-8', errors='ignore')
+
+            if html:
                 if industry_hint == 'default': detected_industry = detect_industry(target_url, html)
                 colors = extract_colors_weighted(html)
                 if colors:
@@ -124,12 +169,15 @@ def main():
                         'secondary': colors[2] if len(colors) > 2 else colors[0],
                         'bg': '#06050b'
                     }
-        except: pass
+                entities = extract_brand_entities(html)
+        except Exception as e:
+            print(f"[!] Extraction error: {e}")
 
     if not theme:
         theme = INDUSTRY_MATRICES.get(detected_industry, INDUSTRY_MATRICES['default'])
 
     theme['detected_industry'] = detected_industry
+    theme['brand_entities'] = entities
 
     output_path = os.path.join(os.getcwd(), 'brand_colors.json')
     with open(output_path, 'w') as f: json.dump(theme, f, indent=2)

@@ -96,10 +96,11 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
         if (!fs.existsSync(brandPath)) throw new Error('Brand data missing. Run Stage 1 first.');
 
         const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
-        const businessName = (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
+        const businessName = brandData.brand_entities?.name || (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
         const env = {
           ...process.env,
           BUSINESS_NAME: businessName,
+          USP: brandData.brand_entities?.usp || '',
           CONTACT_EMAIL: 'uplink@' + (url.replace('https://', '').replace('http://', '').split('/')[0] || 'domain.com'),
           FORMSPREE_HASH: ''
         };
