@@ -195,8 +195,16 @@ ${(pipeline_status?.stages || []).map(s =>
     const zip = new JSZip();
     const artifacts = manifest.delivery_artifacts || {};
 
-    // Main site
-    const { html, css } = Exporter.compileWorkspace(AppState);
+    // Main site — compile a standalone snapshot from manifest state
+    const colors = manifest.colors || {};
+    const { html, css } = Exporter.compileWorkspace({
+      businessName: (manifest.client && manifest.client.name) || (manifest.client && manifest.client.domain) || 'Your Business',
+      usp: manifest.ownable_angle || (manifest.value_propositions || [])[0] || '',
+      themePrimary: colors.primary,
+      themeAccent: colors.accent,
+      themeBg: colors.bg,
+      themeText: colors.text
+    });
     const distFolder = zip.folder('dist');
     distFolder.file('index.html', html);
     distFolder.folder('css').file('styles.css', css);

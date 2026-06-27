@@ -64,7 +64,7 @@ const Pipeline = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: manifest.client.url,
-          industry: manifest.industry,
+          industry: (manifest.client && manifest.client.industry) || 'default',
           ...secrets
         })
       });
@@ -78,12 +78,20 @@ const Pipeline = {
 
       // Update manifest/UI based on backend data
       if (n === 1) {
-        BrandManifest.patch('colors', result.data);
-        BrandManifest.patch('industry', result.data.detected_industry);
-        PipelineUI.log(`NICHE_DETECTED: ${result.data.detected_industry.toUpperCase()}`);
+        const bible = result.data || {};
+        if (bible.palette) BrandManifest.patch('colors', bible.palette);
+        BrandManifest.patch('client', {
+          name: (bible.brand_entities && bible.brand_entities.name) || '',
+          industry: bible.niche || bible.detected_industry || 'default'
+        });
+        const niche = bible.niche || bible.detected_industry || 'default';
+        PipelineUI.log(`NICHE_DETECTED: ${String(niche).toUpperCase()}`);
       } else if (n === 2) {
-        BrandManifest.patch('analysis', result.data);
-        PipelineUI.log(`OWNABLE_ANGLE: ${result.data.ownable_angle.toUpperCase()}`);
+        const a = result.data || {};
+        BrandManifest.patch('competitor_matrix', a.competitor_matrix || []);
+        BrandManifest.patch('value_propositions', a.value_propositions || []);
+        BrandManifest.patch('ownable_angle', a.ownable_angle || '');
+        if (a.ownable_angle) PipelineUI.log(`OWNABLE_ANGLE: ${a.ownable_angle.toUpperCase()}`);
       } else if (n === 3) {
         PipelineUI.log('ENGINE_PRODUCTION_BUILD_COMPILED');
       } else if (n === 4) {

@@ -3,64 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{BUSINESS_NAME}} | Professional Web Solutions</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{BUSINESS_NAME}} | {{NICHE_LABEL}}</title>
+    <meta name="description" content="{{USP}}">
+    <meta name="theme-color" content="{{ACCENT_COLOR}}">
+    <meta property="og:title" content="{{BUSINESS_NAME}}">
+    <meta property="og:description" content="{{USP}}">
+    <meta property="og:type" content="website">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="{{FONT_URL}}" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
         :root {
-            --primary: {{PRIMARY_COLOR}};
-            --secondary: {{SECONDARY_COLOR}};
-            --accent: {{ACCENT_COLOR}};
             --bg: {{BG_COLOR}};
-        }
-        body {
-            background-color: var(--bg);
-            color: #ffffff;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .border-premium {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: border-color 0.3s ease;
-        }
-        .border-premium:hover {
-            border-color: var(--accent);
-        }
-        .btn-premium {
-            background: var(--primary);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            transition: all 0.3s ease;
-        }
-        .btn-premium:hover {
-            filter: brightness(1.2);
-            box-shadow: 0 0 15px var(--primary);
+            --surface: {{SURFACE_COLOR}};
+            --primary: {{PRIMARY_COLOR}};
+            --accent: {{ACCENT_COLOR}};
+            --text: {{TEXT_COLOR}};
+            --muted: {{MUTED_COLOR}};
+            --line: {{LINE_COLOR}};
+            --font-heading: '{{FONT_HEADING}}', system-ui, sans-serif;
+            --font-body: '{{FONT_BODY}}', system-ui, sans-serif;
         }
     </style>
 </head>
-<body class="antialiased overflow-x-hidden">
+<body>
 
     {{NAV}}
     {{HERO}}
-    {{FEATURES}}
-
-    <!-- CTA -->
-    <section id="contact" class="py-24 px-6 max-w-3xl mx-auto text-center">
-        <h2 class="text-4xl md:text-5xl font-bold uppercase mb-8">Deploy Your Future</h2>
-        <p class="text-white/60 mb-12">Submit your details to receive an automated architecture audit and discovery session with our lead engineers.</p>
-
-        <form action="mailto:{{CONTACT_EMAIL}}" method="POST" class="space-y-4">
-            <input type="text" name="name" placeholder="ORGANIZATION NAME" class="w-full bg-white/5 border border-white/10 p-4 text-xs tracking-widest uppercase focus:outline-none focus:border-[var(--accent)]">
-            <input type="email" name="email" placeholder="SECURE EMAIL ADDRESS" class="w-full bg-white/5 border border-white/10 p-4 text-xs tracking-widest uppercase focus:outline-none focus:border-[var(--accent)]">
-            <textarea name="message" rows="4" placeholder="PROJECT REQUIREMENTS BRIEF" class="w-full bg-white/5 border border-white/10 p-4 text-xs tracking-widest uppercase focus:outline-none focus:border-[var(--accent)]"></textarea>
-            <button type="submit" class="btn-premium w-full">Initiate Connection</button>
-        </form>
-    </section>
-
+    {{TRUST}}
+    {{SERVICES}}
+    {{CTA}}
     {{FOOTER}}
 
 </body>

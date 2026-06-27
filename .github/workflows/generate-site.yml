@@ -8,7 +8,7 @@ on:
         required: false
         default: ''
       industry:
-        description: 'Industry Type (auto-detect | construction | medical | legal | fitness | saas | default)'
+        description: 'Niche (auto-detect | medical | legal | home-services)'
         required: false
         default: 'auto-detect'
       business_name:
@@ -58,11 +58,11 @@ jobs:
           echo "::endgroup::"
 
           # Parse output for downstream stages
-          PRIMARY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('primary','#8b5cf6'))")
-          INDUSTRY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('detected_industry','default'))")
+          PRIMARY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('palette',{}).get('accent','#C8A24B'))")
+          INDUSTRY=$(python -c "import json; d=json.load(open('brand_colors.json')); print(d.get('niche', d.get('detected_industry','medical')))")
           echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
           echo "industry=$INDUSTRY" >> $GITHUB_OUTPUT
-          echo "✓ Primary: $PRIMARY | Industry: $INDUSTRY"
+          echo "✓ Accent: $PRIMARY | Niche: $INDUSTRY"
 
       - name: Upload brand_colors.json artifact
         uses: actions/upload-artifact@v4
@@ -104,7 +104,7 @@ jobs:
           CONTACT_EMAIL:  "${{ github.event.inputs.contact_email }}"
           FORMSPREE_HASH: "${{ github.event.inputs.formspree_hash }}"
 
-      - name: Stage 04 — Compile Tailwind Production Assets
+      - name: Stage 04 — Ship Self-Contained Production Stylesheet
         run: npm run build:css
 
       - name: Verify dist outputs exist
@@ -187,8 +187,8 @@ jobs:
           const pitch = \`# B2B Pitch — Engine Pipeline Build
           
 Generated: \${new Date().toISOString()}
-Industry: \${brand.detected_industry || 'default'}
-Primary Color: \${brand.primary}
+Niche: \${brand.niche || brand.detected_industry || 'medical'}
+Accent Color: \${(brand.palette||{}).accent}
 
 Pipeline completed all 6 stages successfully.
 \`;

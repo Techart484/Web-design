@@ -134,23 +134,31 @@ const PipelineUI = {
     // Auto-render financials if stage 6 completes
     if (stageId === 6) {
       const manifest = BrandManifest.get();
-      const industry = manifest.industry || 'default';
-      let baseUpfront = 1200;
-      let baseMonthly = 200;
+      const industry = (manifest.client && manifest.client.industry) || 'default';
 
-      if (industry === 'medical' || industry === 'legal') {
-        baseUpfront = 1800;
-        baseMonthly = 250;
-      } else if (industry === 'saas') {
-        baseUpfront = 1500;
-        baseMonthly = 180;
-      }
+      const TIERS = {
+        'medical':       { upfront: 4800, monthly: 600 },
+        'legal':         { upfront: 6500, monthly: 850 },
+        'home-services': { upfront: 5200, monthly: 550 },
+        'default':       { upfront: 4800, monthly: 600 }
+      };
+      const tier = TIERS[industry] || TIERS.default;
 
-      const upfront = Math.floor(baseUpfront * (0.8 + Math.random() * 0.4));
-      const monthly = Math.floor(baseMonthly * (0.9 + Math.random() * 0.2));
+      // Persist pricing so the pitch document and download reflect it.
+      BrandManifest.patch('delivery_artifacts', {
+        upfront_price: tier.upfront.toLocaleString(),
+        monthly_price: tier.monthly.toLocaleString()
+      });
 
-      const pitch = B2bPitch.generateOfflinePitch(manifest);
-      this.renderDelivery(pitch, upfront, monthly);
+      const pitch = B2bPitch.generateOfflinePitch(BrandManifest.get());
+      BrandManifest.patch('delivery_artifacts', {
+        upfront_price: tier.upfront.toLocaleString(),
+        monthly_price: tier.monthly.toLocaleString(),
+        b2b_pitch: pitch,
+        maintenance_monitor: B2bPitch.generateMaintenanceMonitor(BrandManifest.get())
+      });
+
+      this.renderDelivery(pitch, tier.upfront.toLocaleString(), tier.monthly.toLocaleString());
     }
   },
 

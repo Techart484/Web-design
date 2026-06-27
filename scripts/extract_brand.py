@@ -1,186 +1,307 @@
 #!/usr/bin/env python3
 """
-Autonomous Web Designer Engine — Hardened Brand & CSS Extractor (v2.1)
-FIX: Robust color filtering and weighting
-FIX: Improved meta/OG tag scanning
-FIX: Relative path resolution for JSON output
+Autonomous Web Designer Engine — Brand Bible Extractor (v3.0)
+
+Builds a niche-aware Brand Bible from a target URL:
+  * Crawls the page AND its linked external stylesheets for real brand colors
+  * Filters out neutral/grey/near-black colors and keeps only saturated hues
+  * Classifies the business into one of the supported luxury niches using
+    word-boundary keyword scoring (no more 'med' matching 'commerce')
+  * Guarantees a legible palette by validating contrast against the niche
+    background and falling back to the curated niche palette when needed
+  * Extracts name / USP / services for downstream content
+
+Output: brand_colors.json (the Brand Bible) + JSON to stdout.
 """
 
 import sys
 import os
-import json
 import re
+import json
 import urllib.request
-from urllib.error import URLError, HTTPError
+from urllib.parse import urljoin, urlparse
 from collections import Counter
+from html import unescape
 
-# Industry Fallback Matrices
-INDUSTRY_MATRICES = {
-    'construction': {'primary': '#1E3A8A', 'accent': '#F97316', 'secondary': '#1E293B', 'bg': '#030712'},
-    'medical':      {'primary': '#0D9488', 'accent': '#38BDF8', 'secondary': '#0F172A', 'bg': '#040B0E'},
-    'legal':        {'primary': '#1E293B', 'accent': '#D97706', 'secondary': '#475569', 'bg': '#070A13'},
-    'fitness':      {'primary': '#0F0F10', 'accent': '#DC2626', 'secondary': '#1C1917', 'bg': '#080808'},
-    'saas':         {'primary': '#8B5CF6', 'accent': '#06B6D4', 'secondary': '#F43F5E', 'bg': '#06050B'},
-    'default':      {'primary': '#8B5CF6', 'accent': '#06B6D4', 'secondary': '#F43F5E', 'bg': '#06050B'}
-}
+ENGINE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+NICHES_PATH = os.path.join(ENGINE_ROOT, 'config', 'niches.json')
 
-# Neutral/Layout color filter (expanded)
+with open(NICHES_PATH, 'r', encoding='utf-8') as f:
+    NICHES_CONFIG = json.load(f)
+
+NICHE_KEYWORDS = NICHES_CONFIG['keywords']
+NICHES = NICHES_CONFIG['niches']
+DEFAULT_NICHE = NICHES_CONFIG['_meta']['default_niche']
+
 NEUTRAL_COLORS = {
     '#ffffff', '#000000', '#fafafa', '#f9f9f9', '#f8f8f8', '#f5f5f5', '#f3f4f6',
     '#eeeeee', '#e5e7eb', '#e0e0e0', '#0a0a0a', '#111111', '#111827', '#121212',
-    '#333333', '#444444', '#666666', '#888888', '#999999', '#cccccc', '#dddddd'
+    '#181818', '#1a1a1a', '#222222', '#333333', '#444444', '#666666', '#888888',
+    '#999999', '#aaaaaa', '#cccccc', '#dddddd', '#010101', '#020202', '#030303'
 }
 
+
+# ── Color utilities ────────────────────────────────────────
 def clean_hex(hex_val):
-    hex_val = hex_val.strip()
+    hex_val = hex_val.strip().lower()
     if not hex_val.startswith('#'):
         hex_val = '#' + hex_val
     if len(hex_val) == 4:
         hex_val = '#' + ''.join(c * 2 for c in hex_val[1:])
-    return hex_val[:7].lower()
+    return hex_val[:7]
 
-def is_valid_brand_color(hex_val):
-    return hex_val not in NEUTRAL_COLORS and len(hex_val) == 7
 
-def extract_colors_weighted(html_content):
+def hex_to_rgb(hex_val):
+    h = hex_val.lstrip('#')
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def rgb_to_hex(rgb):
+    return '#%02x%02x%02x' % tuple(max(0, min(255, int(c))) for c in rgb)
+
+
+def saturation_spread(hex_val):
+    """How far the color is from grey (0 = perfect grey)."""
+    r, g, b = hex_to_rgb(hex_val)
+    return max(r, g, b) - min(r, g, b)
+
+
+def relative_luminance(hex_val):
+    def chan(c):
+        c = c / 255.0
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = hex_to_rgb(hex_val)
+    return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b)
+
+
+def contrast_ratio(hex_a, hex_b):
+    la, lb = relative_luminance(hex_a), relative_luminance(hex_b)
+    lighter, darker = max(la, lb), min(la, lb)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def is_brand_hue(hex_val):
+    """A usable brand color: not neutral, has real saturation."""
+    return (
+        len(hex_val) == 7
+        and hex_val not in NEUTRAL_COLORS
+        and saturation_spread(hex_val) >= 28
+    )
+
+
+def lighten_for_contrast(hex_val, bg_hex, target=3.0):
+    """Blend a color toward white until it reads on a dark background."""
+    rgb = list(hex_to_rgb(hex_val))
+    for _ in range(20):
+        if contrast_ratio(rgb_to_hex(rgb), bg_hex) >= target:
+            break
+        rgb = [c + (255 - c) * 0.12 for c in rgb]
+    return rgb_to_hex(rgb)
+
+
+def darken(hex_val, factor=0.45):
+    return rgb_to_hex([c * factor for c in hex_to_rgb(hex_val)])
+
+
+# ── Network ────────────────────────────────────────────────
+def fetch(url, timeout=8):
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (compatible; BrandBible/3.0)'})
+    with urllib.request.urlopen(req, timeout=timeout) as res:
+        charset = res.headers.get_content_charset() or 'utf-8'
+        return res.read().decode(charset, errors='ignore')
+
+
+def fetch_stylesheets(html, base_url, limit=6):
+    """Resolve and fetch up to `limit` linked stylesheets."""
+    css = ''
+    hrefs = re.findall(r'<link[^>]+rel=["\']?stylesheet["\']?[^>]*>', html, re.I)
+    found = []
+    for tag in hrefs:
+        m = re.search(r'href=["\']([^"\']+)["\']', tag, re.I)
+        if m:
+            found.append(urljoin(base_url, m.group(1)))
+    for sheet_url in found[:limit]:
+        try:
+            css += '\n' + fetch(sheet_url, timeout=6)
+        except Exception:
+            continue
+    return css
+
+
+# ── Extraction ─────────────────────────────────────────────
+def extract_colors_weighted(*sources):
     hex_pattern = re.compile(r'#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\b')
-    color_scores = Counter()
+    scores = Counter()
+    for content in sources:
+        if not content:
+            continue
+        # CSS custom properties referencing color (weight 6)
+        for val in re.findall(r'--[\w-]*(?:color|brand|primary|accent|theme)[\w-]*\s*:\s*(#[A-Fa-f0-9]{3,6})', content, re.I):
+            c = clean_hex(val)
+            if is_brand_hue(c):
+                scores[c] += 6
+        # theme-color meta (weight 12)
+        for val in re.findall(r'<meta[^>]*theme-color[^>]*content=["\'](#[A-Fa-f0-9]{3,6})["\']', content, re.I):
+            c = clean_hex(val)
+            if is_brand_hue(c):
+                scores[c] += 12
+        # everything else (weight 1)
+        for val in hex_pattern.findall(content):
+            c = clean_hex('#' + val)
+            if is_brand_hue(c):
+                scores[c] += 1
+    # Rank by frequency AND vividness so a saturated brand hue wins over a
+    # merely-common dark navy/grey that slipped past the neutral filter.
+    ranked = sorted(
+        scores.items(),
+        key=lambda kv: kv[1] * (1 + saturation_spread(kv[0]) / 96.0),
+        reverse=True
+    )
+    return [c for c, _ in ranked[:8]]
 
-    # Pass 1: CSS Vars (Weight 5)
-    css_vars = re.findall(r'--[a-zA-Z0-9-]*color[a-zA-Z0-9-]*\s*:\s*(#[A-Fa-f0-9]{6}|#[A-Fa-f0-9]{3})', html_content, re.I)
-    for val in css_vars:
-        c = clean_hex(val)
-        if is_valid_brand_color(c): color_scores[c] += 5
 
-    # Pass 2: Meta tags (Weight 10)
-    meta = re.findall(r'<meta[^>]*(?:theme-color|og:image:url)[^>]*content=["\'](#[A-Fa-f0-9]{6})["\']', html_content, re.I)
-    for val in meta:
-        c = clean_hex(val)
-        if is_valid_brand_color(c): color_scores[c] += 10
+def detect_niche(url, html):
+    # Scan the URL plus the full raw markup (class names, links and metadata
+    # frequently carry the strongest niche signal on JS-rendered pages).
+    text = (url + ' ' + html[:200000]).lower()
+    scores = {}
+    for niche, words in NICHE_KEYWORDS.items():
+        total = 0
+        for w in words:
+            # word-boundary match so 'med' won't match 'commerce'
+            total += len(re.findall(r'(?<![a-z])' + re.escape(w) + r'(?![a-z])', text))
+        scores[niche] = total
+    best = max(scores, key=scores.get)
+    return best if scores[best] > 0 else DEFAULT_NICHE
 
-    # Pass 3: Style tags & inline (Weight 1)
-    for hex_val in hex_pattern.findall(html_content):
-        c = clean_hex('#' + hex_val)
-        if is_valid_brand_color(c): color_scores[c] += 1
 
-    return [color for color, _ in color_scores.most_common(5)]
+def strip_tags(s):
+    # Replace tags with a space so inline spans don't fuse adjacent words.
+    text = unescape(re.sub(r'<[^>]+>', ' ', s))
+    return re.sub(r'\s+', ' ', text).strip()
 
-def detect_industry(url, html_content=''):
-    text = (url + ' ' + html_content[:10000]).lower()
-    keywords = {
-        'medical': r'clinic|dental|health|med|doctor|hospital|pharma|care',
-        'construction': r'construct|roof|build|contrac|remodel|plumb',
-        'legal': r'law|legal|attorney|counsel|lawyer|justice',
-        'fitness': r'fit|gym|crossfit|sport|yoga|train|muscle',
-        'saas': r'saas|software|app|cloud|api|tech|platform'
-    }
-    for ind, pattern in keywords.items():
-        if re.search(pattern, text): return ind
-    return 'default'
 
-def extract_via_firecrawl(url, api_key):
-    """Fallback to Firecrawl if API key is present."""
-    try:
-        import http.client
-        conn = http.client.HTTPSConnection("api.firecrawl.dev")
-        payload = json.dumps({"url": url, "mode": "scrape", "onlyMainContent": True})
-        headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {api_key}'}
-        conn.request("POST", "/v0/scrape", payload, headers)
-        res = conn.getresponse()
-        data = res.read().decode("utf-8")
-        result = json.loads(data)
-        if result.get('success'):
-            return result['data'].get('content', '')
-    except: pass
-    return None
-
-def extract_brand_entities(html):
-    """Extract Company Name, USP, and Features from HTML."""
-    entities = {
-        'name': 'Default Professional',
-        'usp': 'Next-Generation Digital Excellence',
-        'features': []
-    }
-
+def extract_entities(html, domain=''):
+    entities = {'name': '', 'usp': '', 'services': []}
     if not html:
         return entities
 
-    # Extract Name (from <title> or <h1>)
-    title_match = re.search(r'<title>(.*?)</title>', html, re.I | re.S)
-    if title_match:
-        title_text = title_match.group(1).split('|')[0].split('-')[0].strip()
-        if title_text: entities['name'] = title_text
+    domain_token = re.sub(r'[^a-z0-9]', '', domain.lower())
+    GENERIC = {'home', 'homepage', 'welcome', 'index', 'main', 'untitled', 'home page'}
 
-    # Extract USP (from meta description or first <h2>)
-    desc_match = re.search(r'<meta[^>]*name=["\']description["\'][^>]*content=["\'](.*?)["\']', html, re.I | re.S)
-    if desc_match:
-        entities['usp'] = desc_match.group(1).strip()
+    m = re.search(r'<meta[^>]+property=["\']og:site_name["\'][^>]+content=["\'](.*?)["\']', html, re.I)
+    if m and m.group(1).strip() and m.group(1).strip().lower() not in GENERIC:
+        entities['name'] = strip_tags(m.group(1))
     else:
-        h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', html, re.I | re.S)
-        if h2_match:
-            entities['usp'] = re.sub('<[^<]+?>', '', h2_match.group(1)).strip()
+        m = re.search(r'<title[^>]*>(.*?)</title>', html, re.I | re.S)
+        if m:
+            raw_title = strip_tags(m.group(1))
+            segments = [s.strip() for s in re.split(r'[|\u2013\u2014\-:\u00b7]', raw_title) if s.strip()]
+            candidates = [s for s in segments if s.lower() not in GENERIC] or segments
 
-    # Extract Features (look for lists or groups of h3/h4)
-    # This is a heuristic: looking for <li> items in sections that might be "features"
-    feature_matches = re.findall(r'<h3[^>]*>(.*?)</h3>', html, re.I | re.S)
-    if feature_matches:
-        entities['features'] = [re.sub('<[^<]+?>', '', f).strip() for f in feature_matches[:6] if len(f.strip()) > 3]
+            def brand_score(seg):
+                token = re.sub(r'[^a-z0-9]', '', seg.lower())
+                # Strong preference for the segment that matches the domain,
+                # then for shorter (brand names beat marketing taglines).
+                matches_domain = bool(domain_token) and (token in domain_token or domain_token in token)
+                return (1 if matches_domain else 0, -len(seg.split()))
 
-    if not entities['features']:
-        li_matches = re.findall(r'<li>(.*?)</li>', html, re.I | re.S)
-        entities['features'] = [re.sub('<[^<]+?>', '', f).strip() for f in li_matches[:6] if 10 < len(f.strip()) < 100]
+            if candidates:
+                entities['name'] = max(candidates, key=brand_score)
 
+    m = (re.search(r'<meta[^>]+name=["\']description["\'][^>]+content=["\'](.*?)["\']', html, re.I | re.S)
+         or re.search(r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']', html, re.I | re.S))
+    if m:
+        entities['usp'] = strip_tags(m.group(1))
+
+    # Generic navigation / CTA headings that are not real service offerings.
+    NOISE = re.compile(
+        r'^(our |the |explore|view all|see all|learn more|get started|contact|about'
+        r'|home|menu|services|why |how |faq|testimonial|review|blog|news|sign in|log in)',
+        re.I
+    )
+    headings = re.findall(r'<h[23][^>]*>(.*?)</h[23]>', html, re.I | re.S)
+    seen = set()
+    for h in headings:
+        t = strip_tags(h)
+        key = t.lower()
+        if 3 < len(t) < 60 and key not in seen and not NOISE.match(t):
+            seen.add(key)
+            entities['services'].append(t)
+        if len(entities['services']) >= 6:
+            break
     return entities
 
+
+def build_palette(niche_key, brand_colors):
+    """Curated niche palette, with brand identity injected where legible."""
+    base = dict(NICHES[niche_key]['palette'])
+    if brand_colors:
+        brand = brand_colors[0]
+        accent = lighten_for_contrast(brand, base['bg'], target=3.0)
+        base['accent'] = accent
+        base['primary'] = darken(brand, 0.5)
+        base['line'] = 'rgba(255,255,255,0.10)'
+    return base
+
+
 def main():
-    target_url = sys.argv[1] if len(sys.argv) > 1 else ''
-    industry_hint = sys.argv[2].lower() if len(sys.argv) > 2 else 'default'
+    target_url = sys.argv[1].strip() if len(sys.argv) > 1 else ''
+    industry_hint = sys.argv[2].strip().lower() if len(sys.argv) > 2 else ''
     firecrawl_key = os.environ.get('FIRECRAWL_API_KEY')
 
-    theme = None
-    detected_industry = industry_hint
-    entities = {
-        'name': 'Default Professional',
-        'usp': 'Next-Generation Digital Excellence',
-        'features': []
-    }
+    html = ''
+    css = ''
+    niche_key = industry_hint if industry_hint in NICHES else ''
 
     if target_url:
-        if not target_url.startswith('http'): target_url = 'https://' + target_url
+        if not target_url.startswith('http'):
+            target_url = 'https://' + target_url
         try:
-            html = None
-            if firecrawl_key:
-                print("[*] Firecrawl API detected. Attempting deep scrape...")
-                html = extract_via_firecrawl(target_url, firecrawl_key)
-
-            if not html:
-                print("[*] Falling back to local scraper...")
-                req = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=8) as res:
-                    html = res.read().decode('utf-8', errors='ignore')
-
-            if html:
-                if industry_hint == 'default': detected_industry = detect_industry(target_url, html)
-                colors = extract_colors_weighted(html)
-                if colors:
-                    theme = {
-                        'primary': colors[0],
-                        'accent': colors[1] if len(colors) > 1 else INDUSTRY_MATRICES[detected_industry]['accent'],
-                        'secondary': colors[2] if len(colors) > 2 else colors[0],
-                        'bg': '#06050b'
-                    }
-                entities = extract_brand_entities(html)
+            print('[*] Fetching target page...', file=sys.stderr)
+            html = fetch(target_url)
+            print('[*] Fetching linked stylesheets...', file=sys.stderr)
+            css = fetch_stylesheets(html, target_url)
         except Exception as e:
-            print(f"[!] Extraction error: {e}")
+            print(f'[!] Fetch error: {e}', file=sys.stderr)
 
-    if not theme:
-        theme = INDUSTRY_MATRICES.get(detected_industry, INDUSTRY_MATRICES['default'])
+    if not niche_key:
+        niche_key = detect_niche(target_url, html) if html else DEFAULT_NICHE
 
-    theme['detected_industry'] = detected_industry
-    theme['brand_entities'] = entities
+    domain = urlparse(target_url).netloc.replace('www.', '') if target_url else ''
+    brand_colors = extract_colors_weighted(html, css)
+    palette = build_palette(niche_key, brand_colors)
+    entities = extract_entities(html, domain)
+
+    # Fill identity gaps from the niche bible so downstream copy is never blank.
+    niche = NICHES[niche_key]
+    if not entities['name']:
+        entities['name'] = domain.split('.')[0].title() if domain else niche['label']
+    if not entities['usp']:
+        entities['usp'] = niche['hero']['subheadline']
+
+    bible = {
+        'niche': niche_key,
+        'detected_industry': niche_key,
+        'niche_label': niche['label'],
+        'palette': palette,
+        'source_colors': brand_colors[:5],
+        'brand_entities': entities,
+        'extraction': {
+            'used_firecrawl': bool(firecrawl_key),
+            'stylesheets_scanned': bool(css),
+            'brand_color_found': bool(brand_colors)
+        }
+    }
 
     output_path = os.path.join(os.getcwd(), 'brand_colors.json')
-    with open(output_path, 'w') as f: json.dump(theme, f, indent=2)
-    print(json.dumps(theme))
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(bible, f, indent=2)
 
-if __name__ == '__main__': main()
+    print(f"[\u2713] Brand Bible: niche={niche_key} name=\"{entities['name']}\" "
+          f"accent={palette['accent']} colors_found={len(brand_colors)}", file=sys.stderr)
+    print(json.dumps(bible))
+
+
+if __name__ == '__main__':
+    main()
