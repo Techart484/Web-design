@@ -82,10 +82,13 @@ async function generatePreview(opts = {}) {
   const baseEnv = { ...process.env };
   const logs = [];
 
-  // Stage 1 — Brand extraction (writes brand_colors.json at engine root)
+  // Stage 1 — Brand extraction (writes brand_colors.json at engine root).
+  // Pass the business name so niche detection works even when the target URL
+  // is unreachable (no HTML) and the cuisine/industry is only in the name.
   const extractArgs = ['scripts/extract_brand.py', url];
   if (industry) extractArgs.push(industry);
-  const { stdout: brandOut } = await runScript('python3', extractArgs, baseEnv);
+  const extractEnv = { ...baseEnv, BUSINESS_NAME: businessName || '' };
+  const { stdout: brandOut } = await runScript('python3', extractArgs, extractEnv);
   logs.push(brandOut.trim());
   const brand = extractJson(brandOut) || {};
   const niche = brand.niche || brand.detected_industry || 'medical';

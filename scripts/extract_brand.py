@@ -160,16 +160,25 @@ def extract_colors_weighted(*sources):
     return [c for c, _ in ranked[:8]]
 
 
-def detect_niche(url, html):
-    # Scan the URL plus the full raw markup (class names, links and metadata
-    # frequently carry the strongest niche signal on JS-rendered pages).
-    text = (url + ' ' + html[:200000]).lower()
+def detect_niche(url, html, brand_text=''):
+    # Scan the URL, the brand/business name + domain, and the full raw markup
+    # (class names, links and metadata frequently carry the strongest niche
+    # signal on JS-rendered pages).
+    text = (url + ' ' + brand_text + ' ' + html[:200000]).lower()
+    # Compact alphanumeric token of the brand name + domain so cuisine/industry
+    # words fused into a brand ("Tacocaporal", "Sushiko") are still detectable.
+    brand_token = re.sub(r'[^a-z0-9]', '', (brand_text + ' ' + url).lower())
     scores = {}
     for niche, words in NICHE_KEYWORDS.items():
         total = 0
         for w in words:
             # word-boundary match so 'med' won't match 'commerce'
             total += len(re.findall(r'(?<![a-z])' + re.escape(w) + r'(?![a-z])', text))
+            # substring match inside the brand/domain token (weighted higher)
+            # catches an industry word embedded in a brand name.
+            wt = re.sub(r'[^a-z0-9]', '', w.lower())
+            if len(wt) >= 4 and wt in brand_token:
+                total += 3
         scores[niche] = total
     best = max(scores, key=scores.get)
     return best if scores[best] > 0 else DEFAULT_NICHE
@@ -265,10 +274,14 @@ def main():
         except Exception as e:
             print(f'[!] Fetch error: {e}', file=sys.stderr)
 
-    if not niche_key:
-        niche_key = detect_niche(target_url, html) if html else DEFAULT_NICHE
-
     domain = urlparse(target_url).netloc.replace('www.', '') if target_url else ''
+    # Business name (when supplied by the operator) is a strong niche signal,
+    # especially when the target URL is unreachable and no HTML was fetched.
+    business_hint = os.environ.get('BUSINESS_NAME', '').strip()
+    brand_text = f'{business_hint} {domain}'.strip()
+
+    if not niche_key:
+        niche_key = detect_niche(target_url, html, brand_text)
     brand_colors = extract_colors_weighted(html, css)
     palette = build_palette(niche_key, brand_colors)
     entities = extract_entities(html, domain)

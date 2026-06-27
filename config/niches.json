@@ -1,18 +1,138 @@
 {
   "_meta": {
     "description": "Luxury niche design systems for the Autonomous Web Designer Engine. Each niche defines a self-contained brand bible: palette, typography, copy patterns, trust signals, monetization tiers and positioning. Consumed by both extract_brand.py (Python) and generate.js / analyze_competitors.js (Node). The engine emits a full multi-page site (Home, Services/Menu, About, Why Us, Contact) per niche.",
-    "supported_niches": ["medical", "legal", "home-services", "food"],
+    "supported_niches": [
+      "medical",
+      "legal",
+      "home-services",
+      "food"
+    ],
     "default_niche": "medical",
-    "site_pages": ["home", "services", "about", "why-us", "contact"]
+    "site_pages": [
+      "home",
+      "services",
+      "about",
+      "why-us",
+      "contact"
+    ]
   },
-
   "keywords": {
-    "medical": ["clinic", "dental", "dentist", "orthodont", "health", "medical", "medicine", "doctor", "physician", "hospital", "pharma", "surgeon", "surgery", "patient", "wellness", "care", "therapy", "chiropract", "dermatolog", "pediatric", "cardio", "optometr", "veterinar"],
-    "legal": ["law", "lawyer", "attorney", "counsel", "litigation", "legal", "solicitor", "barrister", "paralegal", "estate planning", "personal injury", "criminal defense", "family law", "firm llp"],
-    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"],
-    "food": ["restaurant", "menu", "dining", "diner", "cuisine", "chef", "bistro", "brasserie", "trattoria", "osteria", "eatery", "cafe", "caf\u00e9", "coffee", "bakery", "patisserie", "steakhouse", "sushi", "ramen", "pizzeria", "pizza", "taqueria", "grill", "kitchen table", "reservation", "reservations", "prix fixe", "tasting menu", "wine bar", "cocktail", "gastropub", "food", "catering"]
+    "medical": [
+      "clinic",
+      "dental",
+      "dentist",
+      "orthodont",
+      "health",
+      "medical",
+      "medicine",
+      "doctor",
+      "physician",
+      "hospital",
+      "pharma",
+      "surgeon",
+      "surgery",
+      "patient",
+      "wellness",
+      "care",
+      "therapy",
+      "chiropract",
+      "dermatolog",
+      "pediatric",
+      "cardio",
+      "optometr",
+      "veterinar"
+    ],
+    "legal": [
+      "law",
+      "lawyer",
+      "attorney",
+      "counsel",
+      "litigation",
+      "legal",
+      "solicitor",
+      "barrister",
+      "paralegal",
+      "estate planning",
+      "personal injury",
+      "criminal defense",
+      "family law",
+      "firm llp"
+    ],
+    "home-services": [
+      "construction",
+      "contractor",
+      "remodel",
+      "renovation",
+      "roofing",
+      "roofer",
+      "builder",
+      "custom home",
+      "plumbing",
+      "hvac",
+      "electrician",
+      "landscap",
+      "kitchen",
+      "bathroom",
+      "carpentry",
+      "masonry",
+      "general contractor",
+      "design build"
+    ],
+    "food": [
+      "restaurant",
+      "menu",
+      "dining",
+      "diner",
+      "cuisine",
+      "chef",
+      "bistro",
+      "brasserie",
+      "trattoria",
+      "osteria",
+      "eatery",
+      "cafe",
+      "caf\u00e9",
+      "coffee",
+      "bakery",
+      "patisserie",
+      "steakhouse",
+      "sushi",
+      "ramen",
+      "pizzeria",
+      "pizza",
+      "taqueria",
+      "grill",
+      "kitchen table",
+      "reservation",
+      "reservations",
+      "prix fixe",
+      "tasting menu",
+      "wine bar",
+      "cocktail",
+      "gastropub",
+      "food",
+      "catering",
+      "taco",
+      "tacos",
+      "burrito",
+      "quesadilla",
+      "cantina",
+      "mexican",
+      "tex-mex",
+      "nachos",
+      "enchilada",
+      "margarita",
+      "noodle",
+      "barbecue",
+      "bbq",
+      "seafood",
+      "vegan",
+      "vegetarian",
+      "deli",
+      "tapas",
+      "pho"
+    ]
   },
-
   "niches": {
     "medical": {
       "label": "Medical & Dental",
@@ -39,17 +159,41 @@
         "secondary_cta": "Explore Services"
       },
       "trust_stats": [
-        { "value": "15k+", "label": "Patients Cared For" },
-        { "value": "4.9\u2605", "label": "Average Patient Rating" },
-        { "value": "24/7", "label": "Care Coordination" }
+        {
+          "value": "15k+",
+          "label": "Patients Cared For"
+        },
+        {
+          "value": "4.9\u2605",
+          "label": "Average Patient Rating"
+        },
+        {
+          "value": "24/7",
+          "label": "Care Coordination"
+        }
       ],
       "services": [
-        { "title": "Comprehensive Care", "desc": "End-to-end treatment plans built around the whole patient, not just the symptom." },
-        { "title": "Same-Week Appointments", "desc": "Streamlined scheduling and digital intake so you are seen when it matters." },
-        { "title": "Advanced Diagnostics", "desc": "Modern imaging and lab partners deliver answers faster and with more precision." },
-        { "title": "Transparent Billing", "desc": "Clear estimates and insurance coordination before any treatment begins." }
+        {
+          "title": "Comprehensive Care",
+          "desc": "End-to-end treatment plans built around the whole patient, not just the symptom."
+        },
+        {
+          "title": "Same-Week Appointments",
+          "desc": "Streamlined scheduling and digital intake so you are seen when it matters."
+        },
+        {
+          "title": "Advanced Diagnostics",
+          "desc": "Modern imaging and lab partners deliver answers faster and with more precision."
+        },
+        {
+          "title": "Transparent Billing",
+          "desc": "Clear estimates and insurance coordination before any treatment begins."
+        }
       ],
-      "section_titles": { "services": "Our Practice", "trust": "Why Patients Choose Us" },
+      "section_titles": {
+        "services": "Our Practice",
+        "trust": "Why Patients Choose Us"
+      },
       "value_propositions": [
         "HIPAA-conscious digital intake that cuts patient wait time in half.",
         "Trust-first design proven to lift new-patient conversion for clinics.",
@@ -57,9 +201,30 @@
       ],
       "ownable_angle": "The only practice in the area that feels like concierge medicine before you even walk in.",
       "competitors": [
-        { "name": "Regional Health Group", "weaknesses": ["generic template site", "no online booking", "slow mobile load"] },
-        { "name": "Legacy Family Practice", "weaknesses": ["outdated 2015 design", "no patient reviews surfaced", "stock photography only"] },
-        { "name": "Corporate Clinic Chain", "weaknesses": ["impersonal brand voice", "buried contact info", "no local trust signals"] }
+        {
+          "name": "Regional Health Group",
+          "weaknesses": [
+            "generic template site",
+            "no online booking",
+            "slow mobile load"
+          ]
+        },
+        {
+          "name": "Legacy Family Practice",
+          "weaknesses": [
+            "outdated 2015 design",
+            "no patient reviews surfaced",
+            "stock photography only"
+          ]
+        },
+        {
+          "name": "Corporate Clinic Chain",
+          "weaknesses": [
+            "impersonal brand voice",
+            "buried contact info",
+            "no local trust signals"
+          ]
+        }
       ],
       "pricing": {
         "plan_name": "Practice Growth Plan",
@@ -74,7 +239,6 @@
         ]
       }
     },
-
     "legal": {
       "label": "Law Firms",
       "voice_tone": "Composed, authoritative, discreet. Projects gravitas, precision and trust.",
@@ -100,17 +264,41 @@
         "secondary_cta": "Practice Areas"
       },
       "trust_stats": [
-        { "value": "$250M+", "label": "Recovered for Clients" },
-        { "value": "30+ yrs", "label": "Combined Experience" },
-        { "value": "98%", "label": "Favorable Outcomes" }
+        {
+          "value": "$250M+",
+          "label": "Recovered for Clients"
+        },
+        {
+          "value": "30+ yrs",
+          "label": "Combined Experience"
+        },
+        {
+          "value": "98%",
+          "label": "Favorable Outcomes"
+        }
       ],
       "services": [
-        { "title": "Litigation & Trial", "desc": "Courtroom-tested advocacy for the matters that cannot afford to be lost." },
-        { "title": "Counsel & Strategy", "desc": "Proactive guidance that prevents disputes before they ever reach a filing." },
-        { "title": "Confidential Handling", "desc": "Discreet, conflict-checked representation that protects your reputation." },
-        { "title": "Transparent Engagement", "desc": "Clear scopes and fee structures agreed before any work begins." }
+        {
+          "title": "Litigation & Trial",
+          "desc": "Courtroom-tested advocacy for the matters that cannot afford to be lost."
+        },
+        {
+          "title": "Counsel & Strategy",
+          "desc": "Proactive guidance that prevents disputes before they ever reach a filing."
+        },
+        {
+          "title": "Confidential Handling",
+          "desc": "Discreet, conflict-checked representation that protects your reputation."
+        },
+        {
+          "title": "Transparent Engagement",
+          "desc": "Clear scopes and fee structures agreed before any work begins."
+        }
       ],
-      "section_titles": { "services": "Practice Areas", "trust": "The Standard We Hold" },
+      "section_titles": {
+        "services": "Practice Areas",
+        "trust": "The Standard We Hold"
+      },
       "value_propositions": [
         "Authority-first design that signals gravitas within the first 50ms.",
         "Case-results architecture engineered to convert high-value inquiries.",
@@ -118,9 +306,30 @@
       ],
       "ownable_angle": "The firm that looks as formidable online as it is in the courtroom.",
       "competitors": [
-        { "name": "Downtown Legal Partners", "weaknesses": ["cluttered practice-area menus", "no case results shown", "weak mobile experience"] },
-        { "name": "Boutique Counsel LLC", "weaknesses": ["dated serif-on-beige template", "no clear call to action", "thin trust signals"] },
-        { "name": "Volume Injury Firm", "weaknesses": ["aggressive low-trust branding", "stock imagery", "slow contact response"] }
+        {
+          "name": "Downtown Legal Partners",
+          "weaknesses": [
+            "cluttered practice-area menus",
+            "no case results shown",
+            "weak mobile experience"
+          ]
+        },
+        {
+          "name": "Boutique Counsel LLC",
+          "weaknesses": [
+            "dated serif-on-beige template",
+            "no clear call to action",
+            "thin trust signals"
+          ]
+        },
+        {
+          "name": "Volume Injury Firm",
+          "weaknesses": [
+            "aggressive low-trust branding",
+            "stock imagery",
+            "slow contact response"
+          ]
+        }
       ],
       "pricing": {
         "plan_name": "Firm Authority Plan",
@@ -135,7 +344,6 @@
         ]
       }
     },
-
     "home-services": {
       "label": "Home Services & Custom Builders",
       "voice_tone": "Confident, grounded, premium. Communicates craftsmanship and reliability.",
@@ -161,17 +369,41 @@
         "secondary_cta": "View Our Work"
       },
       "trust_stats": [
-        { "value": "500+", "label": "Projects Delivered" },
-        { "value": "100%", "label": "Licensed & Insured" },
-        { "value": "10 yr", "label": "Workmanship Warranty" }
+        {
+          "value": "500+",
+          "label": "Projects Delivered"
+        },
+        {
+          "value": "100%",
+          "label": "Licensed & Insured"
+        },
+        {
+          "value": "10 yr",
+          "label": "Workmanship Warranty"
+        }
       ],
       "services": [
-        { "title": "Custom Builds", "desc": "Ground-up homes and additions engineered to your life and your lot." },
-        { "title": "Premium Remodels", "desc": "Kitchens, baths and whole-home transformations with zero surprise costs." },
-        { "title": "Project Transparency", "desc": "Live schedules, milestone updates and a single point of contact throughout." },
-        { "title": "Warrantied Quality", "desc": "Licensed crews and a written workmanship warranty on every project." }
+        {
+          "title": "Custom Builds",
+          "desc": "Ground-up homes and additions engineered to your life and your lot."
+        },
+        {
+          "title": "Premium Remodels",
+          "desc": "Kitchens, baths and whole-home transformations with zero surprise costs."
+        },
+        {
+          "title": "Project Transparency",
+          "desc": "Live schedules, milestone updates and a single point of contact throughout."
+        },
+        {
+          "title": "Warrantied Quality",
+          "desc": "Licensed crews and a written workmanship warranty on every project."
+        }
       ],
-      "section_titles": { "services": "What We Build", "trust": "Why Homeowners Trust Us" },
+      "section_titles": {
+        "services": "What We Build",
+        "trust": "Why Homeowners Trust Us"
+      },
       "value_propositions": [
         "Portfolio-first design that turns finished projects into booked estimates.",
         "Trust-signal architecture (licensing, warranty, reviews) front and center.",
@@ -179,9 +411,30 @@
       ],
       "ownable_angle": "The builder whose website is as polished as their finished work.",
       "competitors": [
-        { "name": "Big-Box Remodelers", "weaknesses": ["impersonal national brand", "no real project photos", "long response times"] },
-        { "name": "Local Handyman Co.", "weaknesses": ["DIY-grade website", "no licensing shown", "no project gallery"] },
-        { "name": "Design-Build Competitor", "weaknesses": ["slow image-heavy site", "weak mobile layout", "buried estimate form"] }
+        {
+          "name": "Big-Box Remodelers",
+          "weaknesses": [
+            "impersonal national brand",
+            "no real project photos",
+            "long response times"
+          ]
+        },
+        {
+          "name": "Local Handyman Co.",
+          "weaknesses": [
+            "DIY-grade website",
+            "no licensing shown",
+            "no project gallery"
+          ]
+        },
+        {
+          "name": "Design-Build Competitor",
+          "weaknesses": [
+            "slow image-heavy site",
+            "weak mobile layout",
+            "buried estimate form"
+          ]
+        }
       ],
       "pricing": {
         "plan_name": "Builder Premium Plan",
@@ -196,7 +449,6 @@
         ]
       }
     },
-
     "food": {
       "label": "Food & Restaurant",
       "voice_tone": "Warm, sensory, confident. Communicates hospitality, craft and an unforgettable table.",
@@ -222,48 +474,112 @@
         "secondary_cta": "View the Menu"
       },
       "trust_stats": [
-        { "value": "4.8\u2605", "label": "Average Guest Rating" },
-        { "value": "12 yrs", "label": "Serving the Neighborhood" },
-        { "value": "Nightly", "label": "Seasonal Tasting Menu" }
+        {
+          "value": "4.8\u2605",
+          "label": "Average Guest Rating"
+        },
+        {
+          "value": "12 yrs",
+          "label": "Serving the Neighborhood"
+        },
+        {
+          "value": "Nightly",
+          "label": "Seasonal Tasting Menu"
+        }
       ],
       "services": [
-        { "title": "Seasonal Kitchen", "desc": "A menu that changes with the market \u2014 produce-led plates built around what's at its peak." },
-        { "title": "Curated Wine & Cocktails", "desc": "A sommelier-built list and house cocktails designed to pair with every course." },
-        { "title": "Private Dining & Events", "desc": "Intimate rooms and full buyouts for celebrations, tastings and corporate evenings." },
-        { "title": "Effortless Reservations", "desc": "Book in seconds, tell us about allergies and occasions, and arrive to a table that's ready." }
+        {
+          "title": "Seasonal Kitchen",
+          "desc": "A menu that changes with the market \u2014 produce-led plates built around what's at its peak."
+        },
+        {
+          "title": "Curated Wine & Cocktails",
+          "desc": "A sommelier-built list and house cocktails designed to pair with every course."
+        },
+        {
+          "title": "Private Dining & Events",
+          "desc": "Intimate rooms and full buyouts for celebrations, tastings and corporate evenings."
+        },
+        {
+          "title": "Effortless Reservations",
+          "desc": "Book in seconds, tell us about allergies and occasions, and arrive to a table that's ready."
+        }
       ],
-      "section_titles": { "services": "Our Menu", "trust": "Why Guests Return" },
+      "section_titles": {
+        "services": "Our Menu",
+        "trust": "Why Guests Return"
+      },
       "menu_label": "Menu",
       "reservation": {
         "enabled": true,
         "heading": "Reserve Your Table",
         "subheading": "Tell us when you're coming and we'll have everything ready. For parties of 8 or more, please call ahead.",
         "cta": "Confirm Reservation",
-        "party_sizes": ["1 guest", "2 guests", "3 guests", "4 guests", "5 guests", "6 guests", "7+ (call us)"],
+        "party_sizes": [
+          "1 guest",
+          "2 guests",
+          "3 guests",
+          "4 guests",
+          "5 guests",
+          "6 guests",
+          "7+ (call us)"
+        ],
         "services_note": "Dinner served Tue\u2013Sun \u00b7 5:00pm\u201310:30pm \u00b7 Bar opens at 4:00pm"
       },
       "menu": [
         {
           "category": "To Start",
           "items": [
-            { "name": "Wood-Oven Focaccia", "desc": "Cultured butter, sea salt, rosemary", "price": "12" },
-            { "name": "Heirloom Tomato", "desc": "Burrata, basil oil, aged balsamic", "price": "18" },
-            { "name": "Hand-Cut Tartare", "desc": "Grass-fed beef, egg yolk, grilled sourdough", "price": "21" }
+            {
+              "name": "Wood-Oven Focaccia",
+              "desc": "Cultured butter, sea salt, rosemary",
+              "price": "12"
+            },
+            {
+              "name": "Heirloom Tomato",
+              "desc": "Burrata, basil oil, aged balsamic",
+              "price": "18"
+            },
+            {
+              "name": "Hand-Cut Tartare",
+              "desc": "Grass-fed beef, egg yolk, grilled sourdough",
+              "price": "21"
+            }
           ]
         },
         {
           "category": "Mains",
           "items": [
-            { "name": "Saffron Risotto", "desc": "Carnaroli rice, parmesan, brown butter", "price": "29" },
-            { "name": "Dry-Aged Ribeye", "desc": "Confit potato, charred allium, bordelaise", "price": "46" },
-            { "name": "Line-Caught Branzino", "desc": "Fennel, citrus, salsa verde", "price": "38" }
+            {
+              "name": "Saffron Risotto",
+              "desc": "Carnaroli rice, parmesan, brown butter",
+              "price": "29"
+            },
+            {
+              "name": "Dry-Aged Ribeye",
+              "desc": "Confit potato, charred allium, bordelaise",
+              "price": "46"
+            },
+            {
+              "name": "Line-Caught Branzino",
+              "desc": "Fennel, citrus, salsa verde",
+              "price": "38"
+            }
           ]
         },
         {
           "category": "To Finish",
           "items": [
-            { "name": "Dark Chocolate Tart", "desc": "Salted caramel, creme fraiche", "price": "14" },
-            { "name": "Seasonal Sorbet", "desc": "Three scoops, market fruit", "price": "11" }
+            {
+              "name": "Dark Chocolate Tart",
+              "desc": "Salted caramel, creme fraiche",
+              "price": "14"
+            },
+            {
+              "name": "Seasonal Sorbet",
+              "desc": "Three scoops, market fruit",
+              "price": "11"
+            }
           ]
         }
       ],
@@ -274,9 +590,30 @@
       ],
       "ownable_angle": "The neighborhood table whose website tastes as good as the food looks.",
       "competitors": [
-        { "name": "Legacy Family Restaurant", "weaknesses": ["PDF-only menu", "no online reservations", "slow image-heavy site"] },
-        { "name": "Trendy Pop-Up Concept", "weaknesses": ["menu buried in social posts", "no hours or location surfaced", "broken mobile booking"] },
-        { "name": "Chain Casual Dining", "weaknesses": ["generic corporate template", "stock food photography", "no sense of place or chef"] }
+        {
+          "name": "Legacy Family Restaurant",
+          "weaknesses": [
+            "PDF-only menu",
+            "no online reservations",
+            "slow image-heavy site"
+          ]
+        },
+        {
+          "name": "Trendy Pop-Up Concept",
+          "weaknesses": [
+            "menu buried in social posts",
+            "no hours or location surfaced",
+            "broken mobile booking"
+          ]
+        },
+        {
+          "name": "Chain Casual Dining",
+          "weaknesses": [
+            "generic corporate template",
+            "stock food photography",
+            "no sense of place or chef"
+          ]
+        }
       ],
       "pricing": {
         "plan_name": "Restaurant Presence Plan",
