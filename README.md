@@ -1,71 +1,99 @@
-# Autonomous Web Designer Engine // B2B Control Center
+# Autonomous Web Designer Engine — Luxury Niche Edition
 
-The **Autonomous Web Designer Engine** is a high-performance, full-stack pipeline designed to transform a target URL into a production-grade, niche-optimized landing page with a **Premium Brutalist** design signature.
+The **Autonomous Web Designer Engine** turns a target URL into a self-contained,
+production-grade landing page tailored to one of three high-value service niches,
+then packages a B2B pitch and a **monthly tech-stack upkeep** plan for a recurring
+retainer.
 
-Built for B2B scale, it automates the entire journey from brand extraction to Vercel deployment and client pitch generation.
+It is deliberately scoped to the three verticals that depend most on a premium web
+presence and ongoing maintenance:
 
-## 🚀 The 6-Stage Autonomous Pipeline
+| Niche | Audience | Upfront | Monthly Upkeep |
+|-------|----------|---------|----------------|
+| **Medical & Dental** | Clinics, practices, specialists | $4,800 | $600 / mo |
+| **Law Firms** | Boutique & litigation firms | $6,500 | $850 / mo |
+| **High-End Home Services** | Custom builders, remodelers | $5,200 | $550 / mo |
 
-1.  **Stage 01: Full-Site Crawl & Brand Bible**
-    - Extracts brand colors, voice, culture, and core offerings using Python-based vision/text analysis.
-2.  **Stage 02: Competitor Matrix & Positioning**
-    - Identifies industry rivals and crafts a "distinctly superior" ownable angle.
-3.  **Stage 03: Offerings & Culture-First Build**
-    - Compiles a dynamic design system with culture-infused architecture.
-4.  **Stage 04: Visual & Experience Uniqueness**
-    - Injects custom motion, hairlines, and mono-meta typography.
-5.  **Stage 05: Self-Fixing Critique Loop**
-    - AI-driven refinement cycles to ensure alignment with the Brand Bible.
-6.  **Stage 06: Final Validation & Delivery**
-    - Generates a full delivery bundle (site + pitch doc) and prepares for Vercel Hobby/Pro deployment.
+Each niche ships a distinct, curated design system — palette, typography, voice,
+trust signals, service copy, competitor positioning, and pricing — defined in
+[`config/niches.json`](config/niches.json).
 
-## 🛠️ Tech Stack
+## The 6-Stage Pipeline
 
--   **Backend:** Node.js (Express), Python (Brand Extraction)
--   **Frontend:** Vanilla JS, Tailwind CSS 4.0 (Premium Brutalist Design System)
--   **AI Engine:** Integrated with Ollama (Qwen 2.5 Coder + DeepSeek Coder V2) & Gemini/Firecrawl.
--   **Automation:** Playwright for UI verification, JSZip for asset bundling.
+1. **Stage 01 — Brand Bible Extraction** (`scripts/extract_brand.py`)
+   - Fetches the page **and its linked stylesheets**, ranks brand colors by
+     frequency × vividness, validates WCAG contrast against the niche background,
+     and classifies the niche with word-boundary keyword matching. Outputs
+     `brand_colors.json` (name, USP, services, palette, niche).
+2. **Stage 02 — Competitor Matrix** (`scripts/analyze_competitors.js`)
+   - Produces a niche-specific competitor matrix (objects with `name` +
+     `weaknesses`), value propositions, and an ownable positioning angle.
+3. **Stage 03 — Niche-Aware Production Build** (`scripts/generate.js`)
+   - Assembles a self-contained `dist/index.html` from the niche design system and
+     the client's real content. No engine boilerplate, no dev-only CDN.
+4. **Stage 04 — Visual Polish** (`scripts/polish.js`)
+   - Applies finishing passes and reports polish metrics.
+5. **Stage 05 — Critique Loop** (`scripts/critique.js`)
+   - Static audit (accessibility, responsiveness, brand alignment). An optional
+     Ollama-backed pass runs only when a local model is available.
+6. **Stage 06 — Delivery** (`js/b2b-pitch.js`, server `/api/pipeline/stage/6`)
+   - Bundles the site, B2B pitch, and maintenance monitor into a ZIP.
 
-## 📦 Getting Started
+The production page links a real, self-contained stylesheet
+(`dist/styles.css`, shipped by `scripts/build-css.js` from
+`templates/master-landing-page/site.css`) — no Tailwind CDN.
+
+## Tech Stack
+
+- **Backend:** Node.js (Express), Python 3 (brand extraction — stdlib only)
+- **Frontend:** Vanilla JS control center + vanilla CSS luxury design system
+- **AI (optional):** Ollama for the Stage 05 critique pass; the pipeline runs
+  fully offline with curated niche fallbacks when no model/keys are present
+- **Automation:** GitHub Actions for the build pipeline and monthly upkeep
+
+## Getting Started
 
 ### Prerequisites
 - Node.js >= 18
 - Python 3.10+
-- [Ollama](https://ollama.ai/) installed and running.
+- (Optional) [Ollama](https://ollama.ai/) for AI-assisted critique
 
-### Installation
-1.  **Clone the Repository**
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
-3.  **Setup AI Models**
-    ```bash
-    # Windows
-    .\scripts\setup-ollama.ps1
-    # Manual
-    ollama pull qwen2.5-coder:7b
-    ollama pull deepseek-v2:16b
-    ```
+### Install & Run
+```bash
+npm install
+npm start            # Control Center at http://localhost:8000
+```
 
-### Running the Engine
-1.  **Start the Backend Server**
-    ```bash
-    npm start
-    ```
-2.  **Open the Control Center**
-    Navigate to `http://localhost:8000` in your browser.
-3.  **Execute**
-    Enter a target URL and hit `▷ EXECUTE PIPELINE`.
+### CLI Pipeline
+```bash
+# Full offline pipeline for a target URL
+npm run extract -- https://client-site.com
+npm run analyze -- https://client-site.com
+npm run build        # generate + ship self-contained styles.css
+npm run polish
+npm run critique
+```
+Override copy via env vars: `BUSINESS_NAME`, `USP`, `CONTACT_EMAIL`,
+`FORMSPREE_HASH`. Force a niche by passing it as the 2nd arg to
+`extract_brand.py` (`medical | legal | home-services`).
 
-## 💎 Design Signature: Premium Brutalist
-- **Typography:** JetBrains Mono & Inter.
-- **Visuals:** High-contrast dark theme, gold accents (#D4AF37), hairline borders, and terminal-style logs.
-- **UX:** Scroll-jack motion and real-time pipeline streaming.
+## Monthly Tech-Stack Upkeep
 
-## 💰 Business Logic
-- **Dynamic Pricing:** Automatically calculates upfront modernization costs ($1200-$1800) and monthly maintenance based on client niche and complexity.
-- **B2B Delivery:** Generates professional Markdown pitches and maintenance monitoring documents for immediate client handoff.
+The retainer model is automated by
+[`.github/workflows/monthly-upkeep.yml`](.github/workflows/monthly-upkeep.yml),
+scheduled for the 1st of each month. It re-extracts the client brand bible,
+rebuilds the site, runs the critique audit, and reports outdated dependencies and
+`npm audit` results. Set the `CLIENT_URL` repository variable (or pass
+`client_url` on manual dispatch) to point it at the live client site.
 
----
-*Built for the next generation of autonomous web production.*
+## Design Systems
+
+Every niche defines its own:
+- **Palette** — luxury dark theme tuned per vertical (extracted brand color is
+  injected as the accent when it passes contrast validation, otherwise the
+  curated niche accent is used).
+- **Typography** — e.g. Sora/Inter (medical), Cormorant Garamond/Inter (legal),
+  Archivo/Inter (home services).
+- **Voice, trust stats, services, value props, competitors, and pricing.**
+
+Edit `config/niches.json` to tune any of these — every stage reads from it.

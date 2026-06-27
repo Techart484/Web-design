@@ -1,0 +1,80 @@
+name: Monthly Tech-Stack Upkeep
+
+# Recurring maintenance for retainer (monthly-payment) clients.
+# Re-audits the live client site, checks for brand/positioning drift,
+# and reports dependency / security status for the engine itself.
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'   # 09:00 UTC on the 1st of every month
+  workflow_dispatch:
+    inputs:
+      client_url:
+        description: 'Client site to re-audit (defaults to CLIENT_URL repo variable)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  upkeep:
+    name: "Monthly Re-Audit & Stack Upkeep"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve client URL
+        id: cfg
+        run: |
+          URL="${{ github.event.inputs.client_url }}"
+          if [ -z "$URL" ]; then URL="${{ vars.CLIENT_URL }}"; fi
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Re-auditing: ${URL:-'(none configured)'}"
+
+      - name: Stage 01 — Re-extract Brand Bible
+        if: steps.cfg.outputs.url != ''
+        run: python scripts/extract_brand.py "${{ steps.cfg.outputs.url }}"
+
+      - name: Rebuild production site
+        if: steps.cfg.outputs.url != ''
+        run: npm run build
+
+      - name: Stage 05 — Critique Audit
+        if: steps.cfg.outputs.url != ''
+        run: node scripts/critique.js | tee critique-report.txt
+
+      - name: Dependency & security upkeep report
+        run: |
+          echo "## Monthly Stack Upkeep — $(date -u +%Y-%m-%d)" > upkeep-report.md
+          echo "" >> upkeep-report.md
+          echo "### Outdated dependencies" >> upkeep-report.md
+          npm outdated >> upkeep-report.md || true
+          echo "" >> upkeep-report.md
+          echo "### Security audit" >> upkeep-report.md
+          npm audit --omit=dev >> upkeep-report.md || true
+
+      - name: Upload upkeep report
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-upkeep-report
+          path: |
+            upkeep-report.md
+            critique-report.txt
+            dist/
+          retention-days: 180

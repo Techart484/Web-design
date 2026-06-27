@@ -1,5 +1,5 @@
 const express = require('express');
-const { exec, execFile } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
@@ -96,23 +96,18 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
         if (!fs.existsSync(brandPath)) throw new Error('Brand data missing. Run Stage 1 first.');
 
         const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
-        const businessName = brandData.brand_entities?.name || (brandData.detected_industry || 'Niche').toUpperCase() + " PROFESSIONAL";
-        const env = {
+        const businessName = brandData.brand_entities?.name || brandData.niche_label || 'Your Business';
+        const domain = (url || '').replace(/^https?:\/\//, '').split('/')[0] || 'domain.com';
+        const genEnv = {
           ...process.env,
           BUSINESS_NAME: businessName,
           USP: brandData.brand_entities?.usp || '',
-          CONTACT_EMAIL: 'uplink@' + (url.replace('https://', '').replace('http://', '').split('/')[0] || 'domain.com'),
-          FORMSPREE_HASH: ''
+          CONTACT_EMAIL: req.body.contact_email || ('hello@' + domain),
+          FORMSPREE_HASH: req.body.formspree_hash || ''
         };
 
-        const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], env);
-
-        await new Promise((resolve, reject) => {
-          exec('npm run build:css', (err, stdout) => {
-            if (err) return reject(err);
-            resolve(stdout);
-          });
-        });
+        // generate.js ships the self-contained production stylesheet itself.
+        const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], genEnv);
 
         return res.json({ success: true, previewUrl: '/dist/index.html', logs: genStdout });
       }
