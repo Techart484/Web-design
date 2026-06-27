@@ -1,7 +1,7 @@
 {
   "name": "web-design-automation-factory",
   "version": "3.0.0",
-  "description": "Autonomous luxury web design engine for 3 high-value niches (medical, legal, home-services). 6-stage pipeline: brand bible extraction, competitor matrix, niche-aware production build, polish, critique, and delivery with monthly tech-stack upkeep.",
+  "description": "Autonomous luxury web design engine for 4 high-value niches (medical, legal, home-services, food). 6-stage pipeline producing multi-page sites (home, services/menu, about, why-us, contact) with competitor-informed positioning, preview gating, and monthly tech-stack upkeep.",
   "main": "scripts/generate.js",
   "scripts": {
     "extract": "python3 scripts/extract_brand.py",
@@ -12,6 +12,7 @@
     "critique": "node scripts/critique.js",
     "build": "npm run generate && npm run build:css",
     "pipeline": "npm run extract && npm run analyze && npm run build && npm run polish && npm run critique",
+    "verify": "node scripts/verify-pipeline.js",
     "ai:status": "ollama list",
     "start": "node server.js",
     "dev": "node server.js",

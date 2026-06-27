@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const JSZip = require('jszip');
+const preview = require('./scripts/preview');
 
 const app = express();
 const PORT = 8000;
@@ -174,6 +175,87 @@ app.get('/api/download/bundle', (req, res) => {
     res.status(404).send('Bundle not found');
   }
 });
+
+/* ============================================================
+ * PREVIEW GATING SYSTEM (B2B upsell on a client's existing site)
+ * URL -> full pipeline -> gated /preview/:id with watermark + payment CTA
+ * ============================================================ */
+
+/** Generate a gated preview from a client's current URL. */
+app.post('/api/preview/generate', async (req, res) => {
+  const { url, industry, business_name, contact_email, formspree_hash } = req.body;
+  if (!url) return res.status(400).json({ error: 'A client URL is required.' });
+
+  try {
+    console.log(`[*] Preview: generating redesign for ${url}`);
+    const meta = await preview.generatePreview({
+      url,
+      industry,
+      businessName: business_name,
+      contactEmail: contact_email,
+      formspreeHash: formspree_hash
+    });
+    return res.json({
+      success: true,
+      previewId: meta.id,
+      previewUrl: `/preview/${meta.id}/`,
+      niche: meta.niche,
+      niche_label: meta.niche_label,
+      business: meta.business,
+      auditScore: meta.audit_score,
+      pages: meta.pages,
+      features: meta.features,
+      logs: meta.logs
+    });
+  } catch (error) {
+    console.error('[Preview Error]', error.stderr || error.message);
+    return res.status(500).json({ error: 'Preview generation failed', details: error.stderr || error.message, logs: error.stdout || '' });
+  }
+});
+
+/** List all generated previews (control-center registry). */
+app.get('/api/previews', (req, res) => {
+  res.json({ success: true, previews: preview.listPreviews() });
+});
+
+/** Shared handler: serve a gated preview file (HTML watermarked + CTA; assets). */
+function servePreviewFile(req, res) {
+  const { id } = req.params;
+  const meta = preview.getPreviewMeta(id);
+  if (!meta) return res.status(404).send('Preview not found or expired.');
+
+  const file = req.params.file && req.params.file.length ? req.params.file : 'index.html';
+  const base = `/preview/${preview.sanitizeId(id)}/`;
+
+  // Server-rendered checkout (demo monetization step)
+  if (file === 'checkout.html') {
+    const html = preview.renderCheckout(meta, { paymentLink: process.env.PAYMENT_LINK || '' });
+    return res.type('html').send(preview.withBase(html, base));
+  }
+
+  const full = preview.resolvePreviewFile(id, file);
+  if (!full || !fs.existsSync(full)) return res.status(404).send('Preview asset not found.');
+
+  if (full.endsWith('.html')) {
+    const cookie = req.headers.cookie || '';
+    const cookieUnlocked = cookie.split(';').some((c) => c.trim() === `wf_unlock_${id}=${meta.unlock_token}`);
+    const queryUnlocked = String(req.query.unlock || '') === meta.unlock_token;
+    const unlocked = queryUnlocked || cookieUnlocked;
+    // Persist the unlock across in-site navigation once "paid".
+    if (queryUnlocked && !cookieUnlocked) {
+      res.setHeader('Set-Cookie', `wf_unlock_${id}=${meta.unlock_token}; Path=${base}; HttpOnly; SameSite=Lax`);
+    }
+    let html = fs.readFileSync(full, 'utf8');
+    html = preview.withBase(html, base);
+    return res.type('html').send(preview.injectGate(html, meta, { unlocked }));
+  }
+
+  return res.sendFile(full);
+}
+
+/** Serve gated preview files. Two routes cover the site root and named files. */
+app.get('/preview/:id', servePreviewFile);
+app.get('/preview/:id/:file', servePreviewFile);
 
 /** System Health Check */
 app.get('/api/health', (req, res) => {

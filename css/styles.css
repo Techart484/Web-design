@@ -564,3 +564,62 @@ body.premium-brutalist {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* ============================================================
+   CLIENT PREVIEW GATING PANEL
+   ============================================================ */
+.gate-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  padding: 8px 0 4px;
+}
+.gate-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+.gate-field.gate-grow { flex: 1 1 240px; }
+.gate-field label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.gate-field input,
+.gate-field select {
+  background: var(--bg-color);
+  border: var(--hairline);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+.gate-field input:focus,
+.gate-field select:focus { border-color: var(--accent-color); }
+.gate-form .btn-execute { height: 38px; }
+
+.gate-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 12px; }
+.gate-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: var(--hairline);
+  padding: 6px 12px;
+}
+.gate-chip.gate-link {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+.gate-chip.gate-link:hover { background: var(--accent-color); color: #000; }
+.gate-status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  border-left: 3px solid var(--accent-color);
+  padding-left: 10px;
+}

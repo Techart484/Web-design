@@ -1,14 +1,16 @@
 {
   "_meta": {
-    "description": "Luxury niche design systems for the Autonomous Web Designer Engine. Each niche defines a self-contained brand bible: palette, typography, copy patterns, trust signals, monetization tiers and positioning. Consumed by both extract_brand.py (Python) and generate.js / analyze_competitors.js (Node).",
-    "supported_niches": ["medical", "legal", "home-services"],
-    "default_niche": "medical"
+    "description": "Luxury niche design systems for the Autonomous Web Designer Engine. Each niche defines a self-contained brand bible: palette, typography, copy patterns, trust signals, monetization tiers and positioning. Consumed by both extract_brand.py (Python) and generate.js / analyze_competitors.js (Node). The engine emits a full multi-page site (Home, Services/Menu, About, Why Us, Contact) per niche.",
+    "supported_niches": ["medical", "legal", "home-services", "food"],
+    "default_niche": "medical",
+    "site_pages": ["home", "services", "about", "why-us", "contact"]
   },
 
   "keywords": {
     "medical": ["clinic", "dental", "dentist", "orthodont", "health", "medical", "medicine", "doctor", "physician", "hospital", "pharma", "surgeon", "surgery", "patient", "wellness", "care", "therapy", "chiropract", "dermatolog", "pediatric", "cardio", "optometr", "veterinar"],
     "legal": ["law", "lawyer", "attorney", "counsel", "litigation", "legal", "solicitor", "barrister", "paralegal", "estate planning", "personal injury", "criminal defense", "family law", "firm llp"],
-    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"]
+    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"],
+    "food": ["restaurant", "menu", "dining", "diner", "cuisine", "chef", "bistro", "brasserie", "trattoria", "osteria", "eatery", "cafe", "caf\u00e9", "coffee", "bakery", "patisserie", "steakhouse", "sushi", "ramen", "pizzeria", "pizza", "taqueria", "grill", "kitchen table", "reservation", "reservations", "prix fixe", "tasting menu", "wine bar", "cocktail", "gastropub", "food", "catering"]
   },
 
   "niches": {
@@ -190,6 +192,101 @@
           "Estimate-request lead capture integration",
           "Monthly performance & image-optimization tuning",
           "Quarterly competitor & lead-flow audit",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    },
+
+    "food": {
+      "label": "Food & Restaurant",
+      "voice_tone": "Warm, sensory, confident. Communicates hospitality, craft and an unforgettable table.",
+      "fonts": {
+        "heading": "Fraunces",
+        "body": "Inter",
+        "google_url": "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap"
+      },
+      "palette": {
+        "bg": "#140D0A",
+        "surface": "#1E1410",
+        "primary": "#3A241A",
+        "accent": "#E0A458",
+        "text": "#F7EFE6",
+        "muted": "#C2A98F",
+        "line": "rgba(224,164,88,0.18)"
+      },
+      "hero": {
+        "eyebrow": "Now Taking Reservations",
+        "headline": "{NAME}",
+        "subheadline": "A table worth travelling for. Seasonal plates, a considered wine list, and hospitality that lingers long after the last course.",
+        "primary_cta": "Reserve a Table",
+        "secondary_cta": "View the Menu"
+      },
+      "trust_stats": [
+        { "value": "4.8\u2605", "label": "Average Guest Rating" },
+        { "value": "12 yrs", "label": "Serving the Neighborhood" },
+        { "value": "Nightly", "label": "Seasonal Tasting Menu" }
+      ],
+      "services": [
+        { "title": "Seasonal Kitchen", "desc": "A menu that changes with the market \u2014 produce-led plates built around what's at its peak." },
+        { "title": "Curated Wine & Cocktails", "desc": "A sommelier-built list and house cocktails designed to pair with every course." },
+        { "title": "Private Dining & Events", "desc": "Intimate rooms and full buyouts for celebrations, tastings and corporate evenings." },
+        { "title": "Effortless Reservations", "desc": "Book in seconds, tell us about allergies and occasions, and arrive to a table that's ready." }
+      ],
+      "section_titles": { "services": "Our Menu", "trust": "Why Guests Return" },
+      "menu_label": "Menu",
+      "reservation": {
+        "enabled": true,
+        "heading": "Reserve Your Table",
+        "subheading": "Tell us when you're coming and we'll have everything ready. For parties of 8 or more, please call ahead.",
+        "cta": "Confirm Reservation",
+        "party_sizes": ["1 guest", "2 guests", "3 guests", "4 guests", "5 guests", "6 guests", "7+ (call us)"],
+        "services_note": "Dinner served Tue\u2013Sun \u00b7 5:00pm\u201310:30pm \u00b7 Bar opens at 4:00pm"
+      },
+      "menu": [
+        {
+          "category": "To Start",
+          "items": [
+            { "name": "Wood-Oven Focaccia", "desc": "Cultured butter, sea salt, rosemary", "price": "12" },
+            { "name": "Heirloom Tomato", "desc": "Burrata, basil oil, aged balsamic", "price": "18" },
+            { "name": "Hand-Cut Tartare", "desc": "Grass-fed beef, egg yolk, grilled sourdough", "price": "21" }
+          ]
+        },
+        {
+          "category": "Mains",
+          "items": [
+            { "name": "Saffron Risotto", "desc": "Carnaroli rice, parmesan, brown butter", "price": "29" },
+            { "name": "Dry-Aged Ribeye", "desc": "Confit potato, charred allium, bordelaise", "price": "46" },
+            { "name": "Line-Caught Branzino", "desc": "Fennel, citrus, salsa verde", "price": "38" }
+          ]
+        },
+        {
+          "category": "To Finish",
+          "items": [
+            { "name": "Dark Chocolate Tart", "desc": "Salted caramel, creme fraiche", "price": "14" },
+            { "name": "Seasonal Sorbet", "desc": "Three scoops, market fruit", "price": "11" }
+          ]
+        }
+      ],
+      "value_propositions": [
+        "Menu-first design that makes the food the hero and drives reservations, not just clicks.",
+        "Frictionless mobile booking that captures covers the moment a guest is hungry.",
+        "Atmosphere-rich visuals that sell the room before a guest ever walks in."
+      ],
+      "ownable_angle": "The neighborhood table whose website tastes as good as the food looks.",
+      "competitors": [
+        { "name": "Legacy Family Restaurant", "weaknesses": ["PDF-only menu", "no online reservations", "slow image-heavy site"] },
+        { "name": "Trendy Pop-Up Concept", "weaknesses": ["menu buried in social posts", "no hours or location surfaced", "broken mobile booking"] },
+        { "name": "Chain Casual Dining", "weaknesses": ["generic corporate template", "stock food photography", "no sense of place or chef"] }
+      ],
+      "pricing": {
+        "plan_name": "Restaurant Presence Plan",
+        "upfront": 4500,
+        "monthly": 500,
+        "deliverables": [
+          "Bespoke menu-first brand & multi-page site",
+          "Online reservation / waitlist integration",
+          "Monthly menu updates & seasonal refreshes",
+          "Quarterly competitor & review-presence audit",
           "Continuous tech-stack & dependency upkeep"
         ]
       }

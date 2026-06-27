@@ -28,3 +28,6 @@ Thumbs.db
 # Verification
 verification/
 __pycache__/
+
+# Generated client previews
+previews/

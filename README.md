@@ -1,11 +1,11 @@
 # Autonomous Web Designer Engine — Luxury Niche Edition
 
 The **Autonomous Web Designer Engine** turns a target URL into a self-contained,
-production-grade landing page tailored to one of three high-value service niches,
-then packages a B2B pitch and a **monthly tech-stack upkeep** plan for a recurring
-retainer.
+production-grade **multi-page website** (Home, Services/Menu, About, Why Us, and
+Contact) tailored to one of four high-value service niches, then packages a B2B
+pitch and a **monthly tech-stack upkeep** plan for a recurring retainer.
 
-It is deliberately scoped to the three verticals that depend most on a premium web
+It is deliberately scoped to the four verticals that depend most on a premium web
 presence and ongoing maintenance:
 
 | Niche | Audience | Upfront | Monthly Upkeep |
@@ -13,6 +13,7 @@ presence and ongoing maintenance:
 | **Medical & Dental** | Clinics, practices, specialists | $4,800 | $600 / mo |
 | **Law Firms** | Boutique & litigation firms | $6,500 | $850 / mo |
 | **High-End Home Services** | Custom builders, remodelers | $5,200 | $550 / mo |
+| **Food & Restaurant** | Restaurants, bistros, fine dining | $4,500 | $500 / mo |
 
 Each niche ships a distinct, curated design system — palette, typography, voice,
 trust signals, service copy, competitor positioning, and pricing — defined in
@@ -28,9 +29,14 @@ trust signals, service copy, competitor positioning, and pricing — defined in
 2. **Stage 02 — Competitor Matrix** (`scripts/analyze_competitors.js`)
    - Produces a niche-specific competitor matrix (objects with `name` +
      `weaknesses`), value propositions, and an ownable positioning angle.
-3. **Stage 03 — Niche-Aware Production Build** (`scripts/generate.js`)
-   - Assembles a self-contained `dist/index.html` from the niche design system and
-     the client's real content. No engine boilerplate, no dev-only CDN.
+3. **Stage 03 — Niche-Aware Multi-Page Build** (`scripts/generate.js`)
+   - Assembles a self-contained five-page site (`index.html`, `services.html`,
+     `about.html`, `why-us.html`, `contact.html`) with shared navigation/footer
+     from the niche design system and the client's real content. The **Why Us**
+     page is competitor-informed (reads Stage-02 `competitor_analysis.json`). The
+     **food** niche renders a structured menu (categories, items, prices) and a
+     reservation form in place of the standard contact form. Output directory is
+     overridable via `OUT_DIR` for isolated per-client previews.
 4. **Stage 04 — Visual Polish** (`scripts/polish.js`)
    - Applies finishing passes and reports polish metrics.
 5. **Stage 05 — Critique Loop** (`scripts/critique.js`)
@@ -74,8 +80,25 @@ npm run polish
 npm run critique
 ```
 Override copy via env vars: `BUSINESS_NAME`, `USP`, `CONTACT_EMAIL`,
-`FORMSPREE_HASH`. Force a niche by passing it as the 2nd arg to
-`extract_brand.py` (`medical | legal | home-services`).
+`FORMSPREE_HASH`, `OUT_DIR`. Force a niche by passing it as the 2nd arg to
+`extract_brand.py` (`medical | legal | home-services | food`).
+
+### Verify all 4 niches
+```bash
+npm run verify        # extract -> analyze -> generate for every niche + asserts
+```
+Validates niche detection, the five-page structure with cross-page nav,
+competitor-informed Why-Us, and the food menu + reservation UI.
+
+## Preview Gating (B2B upsell)
+
+The control center's **Client Preview Gating** panel (and `POST
+/api/preview/generate`) takes a prospect's current URL, runs the full pipeline
+into an isolated `previews/<id>/` directory, and serves the redesigned site at
+`/preview/<id>/` with a diagonal **watermark** overlay and a sticky **payment
+CTA**. The CTA routes to a niche-priced `checkout.html`; "paying" (demo) sets a
+per-preview unlock token that removes the watermark. Wire a real processor by
+setting the `PAYMENT_LINK` env var.
 
 ## Monthly Tech-Stack Upkeep
 

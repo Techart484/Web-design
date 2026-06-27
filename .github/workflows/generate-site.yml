@@ -8,7 +8,7 @@ on:
         required: false
         default: ''
       industry:
-        description: 'Niche (auto-detect | medical | legal | home-services)'
+        description: 'Niche (auto-detect | medical | legal | home-services | food)'
         required: false
         default: 'auto-detect'
       business_name:

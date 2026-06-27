@@ -254,6 +254,49 @@
       </div>
     </section>
 
+    <!-- GATE / 01 — CLIENT PREVIEW GATING (B2B UPSELL) -->
+    <section class="ui-section" id="section-gate">
+      <div class="section-header">
+        <span class="section-label">GATE / 01</span>
+        <span class="section-title">CLIENT PREVIEW GATING</span>
+        <span class="status-right">// URL → REDESIGN → WATERMARKED PREVIEW + PAYMENT CTA</span>
+      </div>
+      <div class="gate-form">
+        <div class="gate-field gate-grow">
+          <label for="gate-url">CLIENT CURRENT URL</label>
+          <input type="url" id="gate-url" placeholder="https://their-existing-site.com">
+        </div>
+        <div class="gate-field">
+          <label for="gate-niche">NICHE</label>
+          <select id="gate-niche">
+            <option value="">AUTO-DETECT</option>
+            <option value="medical">MEDICAL</option>
+            <option value="legal">LEGAL</option>
+            <option value="home-services">HOME SERVICES</option>
+            <option value="food">FOOD / RESTAURANT</option>
+          </select>
+        </div>
+        <div class="gate-field gate-grow">
+          <label for="gate-business">BUSINESS NAME (OPTIONAL)</label>
+          <input type="text" id="gate-business" placeholder="Auto from site">
+        </div>
+        <button id="gate-generate" class="btn-execute">▷ GENERATE GATED PREVIEW</button>
+      </div>
+      <div class="gate-result" id="gate-result" hidden>
+        <div class="gate-meta">
+          <span class="gate-chip" id="gate-chip-niche">NICHE —</span>
+          <span class="gate-chip" id="gate-chip-score">AUDIT —</span>
+          <span class="gate-chip" id="gate-chip-pages">PAGES —</span>
+          <a class="gate-chip gate-link" id="gate-open" href="#" target="_blank" rel="noopener">OPEN PREVIEW ↗</a>
+          <a class="gate-chip gate-link" id="gate-checkout" href="#" target="_blank" rel="noopener">CHECKOUT ↗</a>
+        </div>
+        <div class="preview-container">
+          <iframe id="gate-iframe" title="Gated Client Preview" style="width:100%;height:560px;border:0;background:#0b0b0d;"></iframe>
+        </div>
+      </div>
+      <div class="gate-status" id="gate-status">// ENTER A CLIENT URL TO GENERATE A GATED REDESIGN PREVIEW</div>
+    </section>
+
     <!-- LIVE SITE PREVIEW -->
     <section class="ui-section" id="section-preview">
       <div class="section-header">
@@ -279,6 +322,7 @@
   <script src="js/b2b-pitch.js" defer></script>
   <script src="js/pipeline-ui.js" defer></script>
   <script src="js/pipeline.js" defer></script>
+  <script src="js/preview-gate.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>

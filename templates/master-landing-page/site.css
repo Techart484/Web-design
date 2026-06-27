@@ -219,11 +219,93 @@ img { max-width: 100%; display: block; }
 .form input:focus, .form textarea:focus { outline: none; border-color: var(--accent); }
 .form .btn { width: 100%; }
 
+/* ---------- Multi-page nav state ---------- */
+.nav-links a { position: relative; transition: color .2s ease; }
+.nav-links a.is-active { color: var(--accent); }
+.nav-links a.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -6px;
+  height: 2px; background: var(--accent); border-radius: 2px;
+}
+
+/* ---------- Page head (interior pages) ---------- */
+.page-head { padding: 84px 0 36px; border-bottom: 1px solid var(--line); }
+.page-head h1 { font-size: clamp(36px, 5vw, 60px); font-weight: 800; margin: 18px 0 16px; }
+.page-head .lede { color: var(--muted); font-size: clamp(16px, 1.3vw, 19px); max-width: 60ch; }
+
+.section-alt { background: color-mix(in srgb, var(--surface) 55%, var(--bg)); }
+.section-cta { margin-top: 40px; }
+
+/* ---------- Why-us teaser (home) ---------- */
+.whyus-teaser { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+.value-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.value-list li { display: flex; gap: 14px; align-items: flex-start; color: var(--text); }
+.value-list .tick {
+  flex: none; width: 26px; height: 26px; display: grid; place-items: center;
+  border-radius: 8px; background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent); font-weight: 700; font-size: 14px;
+}
+
+/* ---------- About ---------- */
+.about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+.about-copy h2 { font-size: clamp(26px, 3vw, 38px); margin-bottom: 18px; }
+.about-copy p { color: var(--muted); margin: 0 0 16px; }
+.about-stats { gap: 20px; }
+.card p { color: var(--muted); font-size: 15.5px; margin: 0; }
+
+/* ---------- Why-us comparison ---------- */
+.compare { display: grid; gap: 18px; }
+.compare-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.compare-them, .compare-us { padding: 26px 28px; }
+.compare-them { background: color-mix(in srgb, var(--bg) 50%, var(--surface)); }
+.compare-us { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border-left: 1px solid var(--line); }
+.compare-label { display: block; font-family: var(--font-heading); font-weight: 700; font-size: 17px; margin-bottom: 12px; }
+.compare-us .compare-label { color: var(--accent); }
+.compare-them ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14.5px; }
+.compare-them li { margin-bottom: 6px; }
+.compare-us p { color: var(--text); margin: 0; font-size: 15px; }
+
+/* ---------- Menu (food niche) ---------- */
+.menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 46px 56px; }
+.menu-category-title {
+  font-family: var(--font-heading); font-size: 24px; font-weight: 700; color: var(--accent);
+  padding-bottom: 14px; margin-bottom: 18px; border-bottom: 1px solid var(--line);
+}
+.menu-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.menu-item-head { display: flex; align-items: baseline; gap: 10px; }
+.menu-item-name { font-family: var(--font-heading); font-weight: 600; font-size: 17px; color: var(--text); }
+.menu-item-dots { flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); }
+.menu-item-price { font-family: var(--font-heading); font-weight: 700; color: var(--accent); }
+.menu-item-price::before { content: "$"; opacity: .7; }
+.menu-item-desc { color: var(--muted); font-size: 14.5px; margin: 6px 0 0; }
+
+/* ---------- Contact / reservation ---------- */
+.contact-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+.contact-info h2 { font-size: clamp(24px, 2.6vw, 34px); margin-bottom: 14px; }
+.contact-info p { color: var(--muted); margin: 0 0 14px; }
+.contact-note {
+  border-left: 2px solid var(--accent); padding-left: 14px;
+  color: var(--text); font-size: 14.5px;
+}
+.contact-email a { color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form select {
+  width: 100%; background: color-mix(in srgb, var(--bg) 60%, var(--surface));
+  border: 1px solid var(--line); border-radius: 12px; color: var(--text);
+  font-family: var(--font-body); font-size: 15px; padding: 15px 16px;
+}
+
 /* ---------- Footer ---------- */
 .footer { border-top: 1px solid var(--line); padding: 40px 0; }
 .footer-inner { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
 .footer .brand { font-family: var(--font-heading); font-weight: 700; }
 .footer small { color: var(--muted); letter-spacing: .04em; }
+.footer small a { color: var(--muted); }
+.footer small a:hover { color: var(--accent); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 14px; font-size: 14px; color: var(--muted); }
+.footer-links a:hover { color: var(--accent); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
@@ -231,7 +313,14 @@ img { max-width: 100%; display: block; }
   .hero-visual { aspect-ratio: 16 / 11; }
   .cards { grid-template-columns: 1fr; }
   .cta-inner { grid-template-columns: 1fr; padding: 44px 28px; }
+  .cta-band { gap: 24px; }
   .nav-links { display: none; }
+  .whyus-teaser,
+  .about-grid,
+  .contact-grid,
+  .menu { grid-template-columns: 1fr; gap: 34px; }
+  .compare-row { grid-template-columns: 1fr; }
+  .compare-us { border-left: none; border-top: 1px solid var(--line); }
 }
 @media (max-width: 560px) {
   .trust-grid { grid-template-columns: 1fr; gap: 20px; }
