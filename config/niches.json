@@ -1,14 +1,15 @@
 {
   "_meta": {
     "description": "Luxury niche design systems for the Autonomous Web Designer Engine. Each niche defines a self-contained brand bible: palette, typography, copy patterns, trust signals, monetization tiers and positioning. Consumed by both extract_brand.py (Python) and generate.js / analyze_competitors.js (Node).",
-    "supported_niches": ["medical", "legal", "home-services"],
+    "supported_niches": ["medical", "legal", "home-services", "food-restaurant"],
     "default_niche": "medical"
   },
 
   "keywords": {
     "medical": ["clinic", "dental", "dentist", "orthodont", "health", "medical", "medicine", "doctor", "physician", "hospital", "pharma", "surgeon", "surgery", "patient", "wellness", "care", "therapy", "chiropract", "dermatolog", "pediatric", "cardio", "optometr", "veterinar"],
     "legal": ["law", "lawyer", "attorney", "counsel", "litigation", "legal", "solicitor", "barrister", "paralegal", "estate planning", "personal injury", "criminal defense", "family law", "firm llp"],
-    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"]
+    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"],
+    "food-restaurant": ["restaurant", "dining", "cuisine", "chef", "menu", "bistro", "cafe", "grill", "eatery", "food", "dinner", "lunch", "breakfast", "steakhouse", "pizzeria", "sushi", "bakery", "kitchen", "table", "reservation"]
   },
 
   "niches": {
@@ -190,6 +191,67 @@
           "Estimate-request lead capture integration",
           "Monthly performance & image-optimization tuning",
           "Quarterly competitor & lead-flow audit",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    },
+
+    "food-restaurant": {
+      "label": "Restaurants & Fine Dining",
+      "voice_tone": "Sensory, welcoming, sophisticated. Evokes atmosphere, flavor, and hospitality.",
+      "fonts": {
+        "heading": "Cormorant Garamond",
+        "body": "Inter",
+        "google_url": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      },
+      "palette": {
+        "bg": "#0D0C0B",
+        "surface": "#1A1816",
+        "primary": "#4A3B28",
+        "accent": "#D4AF37",
+        "text": "#F9F7F2",
+        "muted": "#A89B8C",
+        "line": "rgba(212,175,55,0.2)"
+      },
+      "hero": {
+        "eyebrow": "Now Accepting Reservations",
+        "headline": "{NAME}",
+        "subheadline": "Culinary artistry meets intimate atmosphere. Experience a menu designed for the senses, delivered with uncompromising hospitality.",
+        "primary_cta": "Reserve a Table",
+        "secondary_cta": "View Menu"
+      },
+      "trust_stats": [
+        { "value": "4.8★", "label": "Guest Rating" },
+        { "value": "12yr", "label": "Culinary Excellence" },
+        { "value": "Local", "label": "Farm-to-Table" }
+      ],
+      "services": [
+        { "title": "Seasonal Dining", "desc": "A rotating menu featuring the finest locally-sourced ingredients at their peak of flavor." },
+        { "title": "Private Events", "desc": "Bespoke hosting for celebrations, corporate gatherings, and intimate dinner parties." },
+        { "title": "Curated Wine List", "desc": "Expertly paired selections from premier global vineyards to complement every dish." },
+        { "title": "Chef's Tasting", "desc": "An immersive multi-course journey through our kitchen's most innovative creations." }
+      ],
+      "section_titles": { "services": "The Experience", "trust": "Why Guests Return" },
+      "value_propositions": [
+        "Sensory-first design that translates atmosphere and flavor to the screen.",
+        "Seamless reservation integration that fills tables without the friction.",
+        "High-performance mobile menus built for quick, elegant browsing."
+      ],
+      "ownable_angle": "The dining destination where the digital experience is as refined as the first bite.",
+      "competitors": [
+        { "name": "Main Street Bistro", "weaknesses": ["static PDF menus", "no mobile booking", "amateur food photography"] },
+        { "name": "The Heritage Grill", "weaknesses": ["dated 2010s layout", "confusing navigation", "no social proof"] },
+        { "name": "Corporate Chain Eatery", "weaknesses": ["soulless brand voice", "generic imagery", "clunky user journey"] }
+      ],
+      "pricing": {
+        "plan_name": "Hospitality Digital Plan",
+        "upfront": 3500,
+        "monthly": 450,
+        "deliverables": [
+          "Bespoke luxury restaurant brand & multi-page system",
+          "Interactive dynamic menu & reservation integration",
+          "Monthly image optimization & performance tuning",
+          "Quarterly competitor & guest-feedback audit",
           "Continuous tech-stack & dependency upkeep"
         ]
       }

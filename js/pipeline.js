@@ -56,7 +56,8 @@ const Pipeline = {
       const secrets = {
         firecrawl_key: document.getElementById('firecrawl-key')?.value || '',
         gemini_key: document.getElementById('gemini-key')?.value || '',
-        github_token: document.getElementById('github-token')?.value || ''
+        github_token: document.getElementById('github-token')?.value || '',
+        github_repo: document.getElementById('github-repo')?.value || ''
       };
 
       const response = await fetch(`/api/pipeline/stage/${n}`, {
@@ -65,6 +66,7 @@ const Pipeline = {
         body: JSON.stringify({
           url: manifest.client.url,
           industry: (manifest.client && manifest.client.industry) || 'default',
+          job_uuid: manifest.job_uuid || '',
           ...secrets
         })
       });
@@ -77,6 +79,10 @@ const Pipeline = {
       const result = await response.json();
 
       // Update manifest/UI based on backend data
+      if (result.job_uuid) {
+        BrandManifest.patch('job_uuid', result.job_uuid);
+      }
+
       if (n === 1) {
         const bible = result.data || {};
         if (bible.palette) BrandManifest.patch('colors', bible.palette);
@@ -94,6 +100,15 @@ const Pipeline = {
         if (a.ownable_angle) PipelineUI.log(`OWNABLE_ANGLE: ${a.ownable_angle.toUpperCase()}`);
       } else if (n === 3) {
         PipelineUI.log('ENGINE_PRODUCTION_BUILD_COMPILED');
+        if (result.previewUrl) {
+          const iframe = document.getElementById('preview-iframe');
+          if (iframe) {
+            iframe.src = result.previewUrl;
+            iframe.style.display = 'block';
+            const mount = document.getElementById('live-preview-mount');
+            if (mount) mount.style.display = 'none';
+          }
+        }
       } else if (n === 4) {
         PipelineUI.log('MOTION_SIGNATURE_CALIBRATED');
       } else if (n === 5) {
@@ -105,6 +120,10 @@ const Pipeline = {
       } else if (n === 6) {
         PipelineUI.log('DELIVERY_BUNDLE_READY_FOR_HANDOFF');
         PipelineUI.enableDownload(result.bundleUrl);
+        if (result.github && result.github.success) {
+          PipelineUI.log(`GITHUB_LIVE_SYNC: SUCCESS [BRANCH: ${result.github.branch}]`);
+          PipelineUI.log(`PR_URL: ${result.github.pr_url}`);
+        }
       }
 
       // Output backend logs to terminal

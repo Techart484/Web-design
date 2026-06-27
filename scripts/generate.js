@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 /**
- * Autonomous Web Designer Engine — Luxury Niche Generator (v3.0)
- *
- * Produces a self-contained, production-grade landing page for one of the
- * supported luxury niches (medical, legal, home-services). All content is
- * niche-aware and merged with the extracted Brand Bible — no engine
- * boilerplate ever leaks into the client's page.
+ * Autonomous Web Designer Engine — Multi-Page Site Generator (v4.0)
  */
 
 const fs   = require('fs');
@@ -14,14 +9,12 @@ const path = require('path');
 const ROOT = process.cwd();
 const ENGINE_ROOT = path.resolve(__dirname, '..');
 
-// ── Load niche design systems ──────────────────────────────
 const nichesConfig = JSON.parse(
   fs.readFileSync(path.join(ENGINE_ROOT, 'config', 'niches.json'), 'utf8')
 );
 const NICHES = nichesConfig.niches;
 const DEFAULT_NICHE = nichesConfig._meta.default_niche;
 
-// ── Load Brand Bible (output of Stage 1) ───────────────────
 let brandData = {};
 const brandJsonPath = path.join(ROOT, 'brand_colors.json');
 if (fs.existsSync(brandJsonPath)) {
@@ -32,7 +25,6 @@ if (fs.existsSync(brandJsonPath)) {
   }
 }
 
-// ── Resolve niche ──────────────────────────────────────────
 function resolveNicheKey(data) {
   const candidate = (data.niche || data.detected_industry || DEFAULT_NICHE).toLowerCase();
   return NICHES[candidate] ? candidate : DEFAULT_NICHE;
@@ -40,7 +32,6 @@ function resolveNicheKey(data) {
 const nicheKey = resolveNicheKey(brandData);
 const niche = NICHES[nicheKey];
 
-// ── Resolve palette (extracted overrides niche defaults) ───
 const entities = brandData.brand_entities || {};
 const extractedPalette = brandData.palette || {};
 const palette = {
@@ -53,13 +44,11 @@ const palette = {
   line:    extractedPalette.line    || niche.palette.line
 };
 
-// ── Resolve copy / identity ────────────────────────────────
 const businessName = (process.env.BUSINESS_NAME || entities.name || niche.label).trim();
 const usp = (process.env.USP || entities.usp || niche.hero.subheadline).trim();
 const contactEmail = (process.env.CONTACT_EMAIL || 'hello@domain.com').trim();
 const formspreeHash = (process.env.FORMSPREE_HASH || '').trim();
 
-// ── Helpers ────────────────────────────────────────────────
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;');
@@ -70,29 +59,20 @@ function titleCase(text) {
 
 function cleanServiceTitle(raw) {
   let t = String(raw).replace(/\s+/g, ' ').trim();
-  // Use the first clause before a separator, capped to a tasteful length.
   t = t.split(/[—–\-:|.]/)[0].trim();
   const words = t.split(' ');
   if (words.length > 6) t = words.slice(0, 6).join(' ');
   return titleCase(t);
 }
 
-/**
- * Build niche service cards. Curated niche services guarantee polished copy;
- * real extracted offerings (when present) take over the card titles for
- * relevance to the actual business.
- */
 function buildServices() {
   const cards = niche.services.map((s) => ({ title: s.title, desc: s.desc }));
-
   const realServices = (entities.services || entities.features || [])
     .map((s) => cleanServiceTitle(s))
     .filter((s) => s.length >= 3 && s.length <= 48);
-
   if (realServices.length >= 3) {
     realServices.slice(0, cards.length).forEach((title, i) => { cards[i].title = title; });
   }
-
   return cards;
 }
 
@@ -101,19 +81,21 @@ function loadComponent(type, name = 'default') {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
 }
 
-// ── Section builders ───────────────────────────────────────
+// ── Content Builders ───────────────────────────────────────
+
 function buildHero() {
   const stat = niche.trust_stats[0] || { value: '', label: '' };
+  const heroImage = (entities.images && entities.images.length > 0) ? entities.images[0] : 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop';
   return `
-<section class="hero">
+<section class="hero" style="background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('${heroImage}'); background-size: cover; background-position: center;">
   <div class="container hero-grid">
     <div>
       <span class="eyebrow">${esc(niche.hero.eyebrow)}</span>
       <h1>${esc(businessName)}</h1>
       <p class="lede">${esc(usp)}</p>
       <div class="hero-actions">
-        <a href="#contact" class="btn btn-primary">${esc(niche.hero.primary_cta)}</a>
-        <a href="#services" class="btn btn-ghost">${esc(niche.hero.secondary_cta)}</a>
+        <a href="contact.html" class="btn btn-primary">${esc(niche.hero.primary_cta)}</a>
+        <a href="services.html" class="btn btn-ghost">${esc(niche.hero.secondary_cta)}</a>
       </div>
     </div>
     <div class="hero-visual">
@@ -133,26 +115,28 @@ function buildTrust() {
         <div class="lbl">${esc(s.label)}</div>
       </div>`).join('');
   return `
-<section class="trust" id="about">
+<section class="trust">
   <div class="container trust-grid">${stats}
   </div>
 </section>`;
 }
 
-function buildServicesSection() {
-  const cards = buildServices().map((c, i) => `
+function buildServicesSection(limit = 0) {
+  let cardsData = buildServices();
+  if (limit > 0) cardsData = cardsData.slice(0, limit);
+
+  const cards = cardsData.map((c, i) => `
       <div class="card">
         <div class="idx">${String(i + 1).padStart(2, '0')}</div>
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.desc)}</p>
       </div>`).join('');
   return `
-<section class="section" id="services">
+<section class="section">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">${esc(niche.label)}</span>
       <h2>${esc(niche.section_titles.services)}</h2>
-      <p>${esc(niche.hero.subheadline)}</p>
     </div>
     <div class="cards">${cards}
     </div>
@@ -160,13 +144,39 @@ function buildServicesSection() {
 </section>`;
 }
 
-function buildCta(formAction) {
+function buildAboutContent() {
+  const aboutImage = (entities.images && entities.images.length > 1) ? entities.images[1] : 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2070&auto=format&fit=crop';
   return `
-<section class="cta" id="contact">
+<section class="section">
+  <div class="container">
+     <img src="${aboutImage}" alt="About ${businessName}" class="about-img">
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">About Us</span>
+      <h2>Our Commitment to Excellence</h2>
+    </div>
+    <div class="content-text">
+        <p class="lede">${esc(niche.voice_tone)}</p>
+        <p>${esc(usp)}</p>
+    </div>
+  </div>
+</section>`;
+}
+
+function buildContactSection() {
+    const formAction = formspreeHash
+      ? (formspreeHash.startsWith('http') ? formspreeHash : `https://formspree.io/f/${formspreeHash}`)
+      : `mailto:${contactEmail}`;
+
+    return `
+<section class="section">
   <div class="container">
     <div class="cta-inner">
       <div>
-        <span class="eyebrow">${esc(niche.hero.eyebrow)}</span>
+        <span class="eyebrow">Get In Touch</span>
         <h2>${esc(niche.hero.primary_cta)}</h2>
         <p>Tell us about your needs and we'll respond within one business day.</p>
       </div>
@@ -181,74 +191,147 @@ function buildCta(formAction) {
 </section>`;
 }
 
-// ── Assemble document ──────────────────────────────────────
-const templatePath = path.join(ENGINE_ROOT, 'templates', 'master-landing-page', 'index.html');
-if (!fs.existsSync(templatePath)) {
-  console.error('[ERROR] Master template missing.');
-  process.exit(1);
+// ── Multi-Page Assembly ────────────────────────────────────
+
+const baseTemplatePath = path.join(ENGINE_ROOT, 'templates', 'master-site', 'base.html');
+const baseTemplate = fs.readFileSync(baseTemplatePath, 'utf8');
+
+const pages = [
+    { id: 'index', title: 'Home', description: usp, content: buildHero() + buildTrust() + buildServicesSection(3) },
+    { id: 'services', title: niche.section_titles.services, description: `Our professional ${niche.label} services.`, content: buildServicesSection() + buildInteractiveWidget() },
+    { id: 'about', title: 'About Us', description: `Learn more about ${businessName}.`, content: buildAboutContent() + buildTrust() },
+    { id: 'contact', title: 'Contact Us', description: `Contact ${businessName} for ${niche.label} needs.`, content: buildContactSection() }
+];
+
+function buildInteractiveWidget() {
+    if (nicheKey === 'medical' || nicheKey === 'legal') {
+        return `
+<section class="section">
+    <div class="container">
+        <div class="booking-widget" style="border: 1px solid var(--line); padding: 40px; border-radius: var(--radius); text-align: center; background: var(--surface);">
+            <h3>Schedule Your Consultation</h3>
+            <p>Our digital coordinator is available to help you find the best time.</p>
+            <button class="btn btn-primary" onclick="alert('Booking calendar would mount here.')">Open Schedule</button>
+        </div>
+    </div>
+</section>`;
+    }
+    if (nicheKey === 'food-restaurant') {
+        return `
+<section class="section">
+    <div class="container">
+        <div class="reservation-widget" style="border: 1px solid var(--line); padding: 40px; border-radius: var(--radius); text-align: center; background: var(--surface);">
+            <h3>Book a Table</h3>
+            <p>Reserve your sensory dining experience online.</p>
+            <button class="btn btn-primary" onclick="alert('Table reservation system would mount here.')">Find a Table</button>
+        </div>
+    </div>
+</section>`;
+    }
+    return '';
 }
-let html = fs.readFileSync(templatePath, 'utf8');
 
-const formAction = formspreeHash
-  ? (formspreeHash.startsWith('http') ? formspreeHash : `https://formspree.io/f/${formspreeHash}`)
-  : `mailto:${contactEmail}`;
+// Add niche-specific pages
+if (nicheKey === 'food-restaurant') {
+    pages.push({ id: 'menu', title: 'Our Menu', description: 'Explore our delicious offerings.', content: buildMenuContent() });
+}
 
-const components = {
-  '{{NAV}}': loadComponent('nav'),
-  '{{HERO}}': buildHero(),
-  '{{TRUST}}': buildTrust(),
-  '{{SERVICES}}': buildServicesSection(),
-  '{{CTA}}': buildCta(formAction),
-  '{{FOOTER}}': loadComponent('footer')
-};
-Object.entries(components).forEach(([token, content]) => {
-  html = html.split(token).join(content);
-});
+function buildMenuContent() {
+    const sections = [
+        { name: 'Starters', items: ['Seasonal Soup', 'Artisan Bread', 'Garden Salad'] },
+        { name: 'Mains', items: ['Grilled Sea Bass', 'Herb-Crusted Lamb', 'Wild Mushroom Risotto'] },
+        { name: 'Desserts', items: ['Dark Chocolate Fondant', 'Lemon Tart', 'Selection of Cheeses'] }
+    ];
 
-const substitutions = {
-  '{{BUSINESS_NAME}}': esc(businessName),
-  '{{USP}}': esc(usp),
-  '{{NICHE_LABEL}}': esc(niche.label),
-  '{{NAV_SERVICES}}': esc(niche.section_titles.services),
-  '{{HERO_PRIMARY_CTA}}': esc(niche.hero.primary_cta),
-  '{{CONTACT_EMAIL}}': esc(contactEmail),
-  '{{FONT_URL}}': niche.fonts.google_url,
-  '{{FONT_HEADING}}': niche.fonts.heading,
-  '{{FONT_BODY}}': niche.fonts.body,
-  '{{PRIMARY_COLOR}}': palette.primary,
-  '{{ACCENT_COLOR}}': palette.accent,
-  '{{BG_COLOR}}': palette.bg,
-  '{{SURFACE_COLOR}}': palette.surface,
-  '{{TEXT_COLOR}}': palette.text,
-  '{{MUTED_COLOR}}': palette.muted,
-  '{{LINE_COLOR}}': palette.line,
-  '{{YEAR}}': new Date().getFullYear()
-};
-Object.entries(substitutions).forEach(([token, value]) => {
-  html = html.split(token).join(value);
-});
+    const html = sections.map(s => `
+        <div class="menu-section">
+            <h3>${esc(s.name)}</h3>
+            <ul class="menu-list">
+                ${s.items.map(i => `<li>${esc(i)}</li>`).join('')}
+            </ul>
+        </div>
+    `).join('');
 
-// ── Write output (HTML + linked production stylesheet) ─────
+    return `
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">The Menu</span>
+      <h2>Our Seasonal Offerings</h2>
+    </div>
+    <div class="menu-grid">
+        ${html}
+    </div>
+  </div>
+</section>`;
+}
+
+function assemblePage(page) {
+    let html = baseTemplate;
+
+    const components = {
+        '{{NAV}}': loadComponent('nav'),
+        '{{FOOTER}}': loadComponent('footer'),
+        '{{CONTENT}}': page.content
+    };
+
+    Object.entries(components).forEach(([token, content]) => {
+        html = html.split(token).join(content);
+    });
+
+    const substitutions = {
+        '{{BUSINESS_NAME}}': esc(businessName),
+        '{{USP}}': esc(usp),
+        '{{NICHE_LABEL}}': esc(niche.label),
+        '{{NAV_SERVICES}}': esc(niche.section_titles.services),
+        '{{HERO_PRIMARY_CTA}}': esc(niche.hero.primary_cta),
+        '{{CONTACT_EMAIL}}': esc(contactEmail),
+        '{{FONT_URL}}': niche.fonts.google_url,
+        '{{FONT_HEADING}}': niche.fonts.heading,
+        '{{FONT_BODY}}': niche.fonts.body,
+        '{{PRIMARY_COLOR}}': palette.primary,
+        '{{ACCENT_COLOR}}': palette.accent,
+        '{{BG_COLOR}}': palette.bg,
+        '{{SURFACE_COLOR}}': palette.surface,
+        '{{TEXT_COLOR}}': palette.text,
+        '{{MUTED_COLOR}}': palette.muted,
+        '{{LINE_COLOR}}': palette.line,
+        '{{YEAR}}': new Date().getFullYear(),
+        '{{PAGE_TITLE}}': page.title,
+        '{{PAGE_DESCRIPTION}}': page.description,
+        '{{PAGE_ID}}': page.id,
+        '{{NICHE_SPECIFIC_NAV}}': (nicheKey === 'food-restaurant') ? '<a href="menu.html">Menu</a>' : ''
+    };
+
+    Object.entries(substitutions).forEach(([token, value]) => {
+        html = html.split(token).join(value);
+    });
+
+    return html;
+}
+
 const distDir = path.join(ROOT, 'dist');
 if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
 
-fs.writeFileSync(path.join(distDir, 'index.html'), html);
+pages.forEach(page => {
+    const html = assemblePage(page);
+    fs.writeFileSync(path.join(distDir, `${page.id}.html`), html);
+});
 
-// Ship the self-contained design system alongside the page.
-const cssSrc = path.join(ENGINE_ROOT, 'templates', 'master-landing-page', 'site.css');
+const cssSrc = path.join(ENGINE_ROOT, 'templates', 'master-site', 'site.css');
 fs.copyFileSync(cssSrc, path.join(distDir, 'styles.css'));
 
 const manifest = {
   timestamp: new Date().toISOString(),
-  engine_version: '3.0.0',
+  engine_version: '4.0.0',
   niche: nicheKey,
   niche_label: niche.label,
   business_name: businessName,
   contact: contactEmail,
   palette,
   fonts: niche.fonts,
-  artifacts: ['index.html', 'styles.css']
+  artifacts: pages.map(p => `${p.id}.html`).concat(['styles.css'])
 };
 fs.writeFileSync(path.join(distDir, 'build-manifest.json'), JSON.stringify(manifest, null, 2));
 
-console.log(`[\u2713] Luxury ${niche.label} site assembled in /dist (niche=${nicheKey}, brand="${businessName}")`);
+console.log(`[✓] Multi-page ${niche.label} site assembled in /dist (niche=${nicheKey}, pages=${pages.length})`);

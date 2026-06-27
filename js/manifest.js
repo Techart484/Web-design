@@ -12,6 +12,7 @@ const BrandManifest = {
       industry: 'default',
       domain: ''
     },
+    job_uuid: '',
     colors: {
       primary: '#8b5cf6',
       secondary: '#f43f5e',

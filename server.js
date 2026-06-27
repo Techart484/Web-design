@@ -8,6 +8,9 @@ const JSZip = require('jszip');
 const app = express();
 const PORT = 8000;
 const ROOT = __dirname;
+const JOBS_DIR = path.join(ROOT, 'jobs');
+
+if (!fs.existsSync(JOBS_DIR)) fs.mkdirSync(JOBS_DIR, { recursive: true });
 
 app.use(cors());
 app.use(express.json());
@@ -16,17 +19,27 @@ app.use(express.json());
 app.use('/css', express.static(path.join(ROOT, 'css')));
 app.use('/js', express.static(path.join(ROOT, 'js')));
 app.use('/dist', express.static(path.join(ROOT, 'dist')));
+app.use('/jobs', express.static(JOBS_DIR));
 app.get('/', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
 
+/** Helper: Generate UUID (v4) */
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /** Helper for executing scripts with promise */
-function runScript(cmd, args, env = process.env) {
+function runScript(cmd, args, env = process.env, cwd = ROOT) {
   let finalCmd = cmd;
   if (cmd === 'python3' && process.platform === 'win32') {
     finalCmd = 'python';
   }
 
   return new Promise((resolve, reject) => {
-    execFile(finalCmd, args, { env }, (err, stdout, stderr) => {
+    execFile(finalCmd, args, { env, cwd }, (err, stdout, stderr) => {
       // We resolve even on stderr as long as there is stdout,
       // but reject on actual execution errors.
       if (err && !stdout) {
@@ -58,41 +71,61 @@ function extractJson(stdout) {
 app.post('/api/pipeline/stage/:id', async (req, res) => {
   const stageId = parseInt(req.params.id);
   const { url, industry } = req.body;
+  let { job_uuid } = req.body;
 
-  if (!url && stageId <= 3) {
-    return res.status(400).json({ error: 'URL is required for initial stages' });
+  if (!url && stageId === 1) {
+    return res.status(400).json({ error: 'URL is required for initial stage' });
   }
 
   try {
+    // Stage 1 generates a new UUID if not provided
+    if (stageId === 1 && !job_uuid) {
+      job_uuid = generateUUID();
+    }
+
+    if (!job_uuid) {
+      return res.status(400).json({ error: 'job_uuid is required for subsequent stages' });
+    }
+
+    const jobPath = path.join(JOBS_DIR, job_uuid);
+    if (!fs.existsSync(jobPath)) {
+      if (stageId === 1) {
+        fs.mkdirSync(jobPath, { recursive: true });
+      } else {
+        return res.status(404).json({ error: 'Job directory not found. Start with Stage 1.' });
+      }
+    }
+
     // Collect API keys from headers or body
     const apiKeys = {
       FIRECRAWL_API_KEY: req.body.firecrawl_key || process.env.FIRECRAWL_API_KEY || '',
       GEMINI_API_KEY: req.body.gemini_key || process.env.GEMINI_API_KEY || '',
-      GITHUB_TOKEN: req.body.github_token || process.env.GITHUB_TOKEN || ''
+      GITHUB_TOKEN: req.body.github_token || process.env.GITHUB_TOKEN || '',
+      GITHUB_REPO: req.body.github_repo || process.env.GITHUB_REPO || ''
     };
 
     const env = { ...process.env, ...apiKeys };
 
     switch (stageId) {
       case 1: { // Brand Extraction
-        console.log(`[*] Stage 1: Extraction for ${url}`);
-        const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url], env);
+        console.log(`[*] Stage 1: Extraction for ${url} (Job: ${job_uuid})`);
+        const { stdout } = await runScript('python3', [path.join(ROOT, 'scripts/extract_brand.py'), url], env, jobPath);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract brand data from script output.');
-        return res.json({ success: true, data: data, logs: stdout });
+        return res.json({ success: true, job_uuid, data: data, logs: stdout });
       }
 
       case 2: { // Competitor Analysis
-        console.log(`[*] Stage 2: Competitor Analysis for ${url}`);
-        const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default'], env);
+        console.log(`[*] Stage 2: Competitor Analysis for ${url} (Job: ${job_uuid})`);
+        const { stdout } = await runScript('node', [path.join(ROOT, 'scripts/analyze_competitors.js'), url, industry || 'default'], env, jobPath);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract competitor analysis from script output.');
-        return res.json({ success: true, data: data, logs: stdout });
+        return res.json({ success: true, job_uuid, data: data, logs: stdout });
       }
 
       case 3: { // Site Generation
-        console.log(`[*] Stage 3: Site Generation for ${url}`);
-        const brandPath = path.join(ROOT, 'brand_colors.json');
+        console.log(`[*] Stage 3: Site Generation for ${url} (Job: ${job_uuid})`);
+        const brandPath = path.join(jobPath, 'brand_colors.json');
         if (!fs.existsSync(brandPath)) throw new Error('Brand data missing. Run Stage 1 first.');
 
         const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
@@ -106,32 +139,36 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
           FORMSPREE_HASH: req.body.formspree_hash || ''
         };
 
-        // generate.js ships the self-contained production stylesheet itself.
-        const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], genEnv);
+        const { stdout: genStdout } = await runScript('node', [path.join(ROOT, 'scripts/generate.js')], genEnv, jobPath);
 
-        return res.json({ success: true, previewUrl: '/dist/index.html', logs: genStdout });
+        return res.json({
+          success: true,
+          job_uuid,
+          previewUrl: `/jobs/${job_uuid}/dist/index.html`,
+          logs: genStdout
+        });
       }
 
       case 4: { // Visual Polish
-        console.log(`[*] Stage 4: Visual Polish`);
-        const { stdout } = await runScript('node', ['scripts/polish.js']);
+        console.log(`[*] Stage 4: Visual Polish (Job: ${job_uuid})`);
+        const { stdout } = await runScript('node', [path.join(ROOT, 'scripts/polish.js')], env, jobPath);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract polish data from script output.');
-        return res.json({ success: true, data, logs: stdout });
+        return res.json({ success: true, job_uuid, data, logs: stdout });
       }
 
       case 5: { // Self-Fixing Critique
-        console.log(`[*] Stage 5: Critique`);
-        const { stdout } = await runScript('node', ['scripts/critique.js']);
+        console.log(`[*] Stage 5: Critique (Job: ${job_uuid})`);
+        const { stdout } = await runScript('node', [path.join(ROOT, 'scripts/critique.js')], env, jobPath);
         const data = extractJson(stdout);
         if (!data) throw new Error('Failed to extract critique data from script output.');
-        return res.json({ success: true, data, logs: stdout });
+        return res.json({ success: true, job_uuid, data, logs: stdout });
       }
 
       case 6: { // Final Validation & Delivery Bundle
-        console.log(`[*] Stage 6: Packaging Delivery Bundle`);
+        console.log(`[*] Stage 6: Packaging Delivery Bundle (Job: ${job_uuid})`);
         const zip = new JSZip();
-        const distPath = path.join(ROOT, 'dist');
+        const distPath = path.join(jobPath, 'dist');
 
         if (!fs.existsSync(distPath)) throw new Error('Build artifacts missing. Run Stage 3 first.');
 
@@ -142,12 +179,25 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
         });
 
         const buffer = await zip.generateAsync({ type: 'nodebuffer' });
-        const bundlePath = path.join(ROOT, 'delivery_bundle.zip');
+        const bundlePath = path.join(jobPath, 'delivery_bundle.zip');
         fs.writeFileSync(bundlePath, buffer);
+
+        let githubResult = null;
+        if (apiKeys.GITHUB_TOKEN && apiKeys.GITHUB_REPO) {
+          console.log(`[*] Live Mode: Pushing to GitHub (Job: ${job_uuid})`);
+          try {
+            const { stdout: syncStdout } = await runScript('node', [path.join(ROOT, 'scripts/github_sync.js')], env, jobPath);
+            githubResult = extractJson(syncStdout);
+          } catch (err) {
+            console.error('[GitHub Sync Error]', err.message);
+          }
+        }
 
         return res.json({
           success: true,
-          bundleUrl: '/api/download/bundle',
+          job_uuid,
+          bundleUrl: `/api/download/bundle?job_uuid=${job_uuid}`,
+          github: githubResult,
           message: 'Delivery bundle generated successfully.'
         });
       }
@@ -167,9 +217,12 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
 
 /** Download Delivery Bundle */
 app.get('/api/download/bundle', (req, res) => {
-  const bundlePath = path.join(ROOT, 'delivery_bundle.zip');
+  const { job_uuid } = req.query;
+  if (!job_uuid) return res.status(400).send('job_uuid is required');
+
+  const bundlePath = path.join(JOBS_DIR, job_uuid, 'delivery_bundle.zip');
   if (fs.existsSync(bundlePath)) {
-    res.download(bundlePath, 'autonomous_design_delivery.zip');
+    res.download(bundlePath, `autonomous_design_${job_uuid}.zip`);
   } else {
     res.status(404).send('Bundle not found');
   }

@@ -58,8 +58,14 @@
         <div class="secret-card configured">
           <span class="lock-icon">🔒</span>
           <label for="github-token">GITHUB_TOKEN</label>
-          <input type="password" id="github-token" value="••••••••••••••••" readonly>
-          <span class="status-tag">CONFIGURED</span>
+          <input type="password" id="github-token" placeholder="ghp_...">
+          <span class="status-tag">LIVE_MODE</span>
+        </div>
+        <div class="secret-card configured">
+          <span class="lock-icon">📦</span>
+          <label for="github-repo">GITHUB_REPO</label>
+          <input type="text" id="github-repo" placeholder="user/repo">
+          <span class="status-tag">TARGET</span>
         </div>
       </div>
       <div class="secret-warning">
