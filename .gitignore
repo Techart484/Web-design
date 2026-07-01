@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build and Artifacts
+dist/
+*.zip
+delivery_bundle.zip
+
+# Transient Data
+brand_colors.json
+competitor_analysis.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Verification
+verification/
+__pycache__/
+
+# Gemini
+.gemini/
+
+# System directories
+.docker/
+.ollama/
+.devin/
+.node_repl_history/
+
+# System configs
+.gitconfig

@@ -1,0 +1,64 @@
+{
+  "name": "web-design-automation-factory",
+  "version": "3.0.0",
+  "description": "Autonomous luxury web design engine for 3 high-value niches (medical, legal, home-services). 6-stage pipeline: brand bible extraction, competitor matrix, niche-aware production build, polish, critique, and delivery with monthly tech-stack upkeep.",
+  "main": "scripts/generate.js",
+  "scripts": {
+    "extract": "python3 scripts/extract_brand.py",
+    "analyze": "node scripts/analyze_competitors.js",
+    "generate": "node scripts/generate.js",
+    "build:css": "node scripts/build-css.js",
+    "polish": "node scripts/polish.js",
+    "critique": "node scripts/critique.js",
+    "build": "npm run generate && npm run build:css",
+    "pipeline": "npm run extract && npm run analyze && npm run build && npm run polish && npm run critique",
+    "ai:status": "ollama list",
+    "start": "node server.js",
+    "dev": "node server.js",
+    "lint": "node -e \"const {html, css} = require('./js/exporter'); if(!html||!css){process.exit(1);} require('./js/exporter').Exporter.compileWorkspace({}); console.log('lint OK: exporter + config loadable');\" && node -e \"JSON.parse(require('fs').readFileSync('config/niches.json'));console.log('niches.json OK')\"",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Techart484/Web-design.git"
+  },
+  "keywords": [
+    "web-design",
+    "automation",
+    "landing-page",
+    "ai-pipeline",
+    "ollama",
+    "qwen",
+    "deepseek",
+    "brand-extraction",
+    "competitor-analysis",
+    "no-code",
+    "design-system",
+    "motion-library"
+  ],
+  "author": "Techart484",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jszip": "^3.10.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.1"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}

@@ -1,0 +1,261 @@
+{
+  "_meta": {
+    "description": "Luxury niche design systems for the Autonomous Web Designer Engine. Each niche defines a self-contained brand bible: palette, typography, copy patterns, trust signals, monetization tiers and positioning. Consumed by both extract_brand.py (Python) and generate.js / analyze_competitors.js (Node).",
+    "supported_niches": ["medical", "legal", "home-services", "restaurant"],
+    "default_niche": "medical"
+  },
+
+  "keywords": {
+    "medical": ["clinic", "dental", "dentist", "orthodont", "health", "medical", "medicine", "doctor", "physician", "hospital", "pharma", "surgeon", "surgery", "patient", "wellness", "care", "therapy", "chiropract", "dermatolog", "pediatric", "cardio", "optometr", "veterinar"],
+    "legal": ["law", "lawyer", "attorney", "counsel", "litigation", "legal", "solicitor", "barrister", "paralegal", "estate planning", "personal injury", "criminal defense", "family law", "firm llp"],
+    "home-services": ["construction", "contractor", "remodel", "renovation", "roofing", "roofer", "builder", "custom home", "plumbing", "hvac", "electrician", "landscap", "kitchen", "bathroom", "carpentry", "masonry", "general contractor", "design build"],
+    "restaurant": ["restaurant", "food", "menu", "order", "taco", "tacos", "taqueria", "al pastor", "asada", "carne", "torta", "burrito", "quesadilla", "tamale", "enchilada", "pizza", "burger", "sushi", "cuisine", "dining", "eatery", "cafe", "bistro", "grill", "kitchen", "chef", "delivery", "takeout", "catering", "bar", "pub", "bakery", "sandwich", "salad", "breakfast", "lunch", "dinner", "brunch", "ordercounter", "ordering"]
+  },
+
+  "niches": {
+    "medical": {
+      "label": "Medical & Dental",
+      "voice_tone": "Calm, authoritative, reassuring. Communicates clinical excellence and human warmth.",
+      "fonts": {
+        "heading": "Sora",
+        "body": "Inter",
+        "google_url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700;800&display=swap"
+      },
+      "palette": {
+        "bg": "#0A1626",
+        "surface": "#0F2034",
+        "primary": "#1B9AAA",
+        "accent": "#5FD0C5",
+        "text": "#F2F7FA",
+        "muted": "#9FB3C8",
+        "line": "rgba(95,208,197,0.16)"
+      },
+      "hero": {
+        "eyebrow": "Accepting New Patients",
+        "headline": "{NAME}",
+        "subheadline": "Concierge-level care, engineered around your time. Modern clinical excellence with the warmth your patients remember.",
+        "primary_cta": "Book a Consultation",
+        "secondary_cta": "Explore Services"
+      },
+      "trust_stats": [
+        { "value": "15k+", "label": "Patients Cared For" },
+        { "value": "4.9\u2605", "label": "Average Patient Rating" },
+        { "value": "24/7", "label": "Care Coordination" }
+      ],
+      "services": [
+        { "title": "Comprehensive Care", "desc": "End-to-end treatment plans built around the whole patient, not just the symptom." },
+        { "title": "Same-Week Appointments", "desc": "Streamlined scheduling and digital intake so you are seen when it matters." },
+        { "title": "Advanced Diagnostics", "desc": "Modern imaging and lab partners deliver answers faster and with more precision." },
+        { "title": "Transparent Billing", "desc": "Clear estimates and insurance coordination before any treatment begins." }
+      ],
+      "section_titles": { "services": "Our Practice", "trust": "Why Patients Choose Us" },
+      "value_propositions": [
+        "HIPAA-conscious digital intake that cuts patient wait time in half.",
+        "Trust-first design proven to lift new-patient conversion for clinics.",
+        "Sub-second load times that keep anxious patients from bouncing."
+      ],
+      "ownable_angle": "The only practice in the area that feels like concierge medicine before you even walk in.",
+      "competitors": [
+        { "name": "Regional Health Group", "weaknesses": ["generic template site", "no online booking", "slow mobile load"] },
+        { "name": "Legacy Family Practice", "weaknesses": ["outdated 2015 design", "no patient reviews surfaced", "stock photography only"] },
+        { "name": "Corporate Clinic Chain", "weaknesses": ["impersonal brand voice", "buried contact info", "no local trust signals"] }
+      ],
+      "pricing": {
+        "plan_name": "Practice Growth Plan",
+        "upfront": 4800,
+        "monthly": 600,
+        "deliverables": [
+          "Bespoke premium clinical brand & landing system",
+          "HIPAA-conscious intake / booking integration",
+          "Monthly accessibility & Core Web Vitals tuning",
+          "Quarterly competitor & reputation audit",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    },
+
+    "legal": {
+      "label": "Law Firms",
+      "voice_tone": "Composed, authoritative, discreet. Projects gravitas, precision and trust.",
+      "fonts": {
+        "heading": "Cormorant Garamond",
+        "body": "Inter",
+        "google_url": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      },
+      "palette": {
+        "bg": "#0B0C10",
+        "surface": "#14161C",
+        "primary": "#27406E",
+        "accent": "#C8A24B",
+        "text": "#F5F2EA",
+        "muted": "#A7A192",
+        "line": "rgba(200,162,75,0.18)"
+      },
+      "hero": {
+        "eyebrow": "Trusted Counsel",
+        "headline": "{NAME}",
+        "subheadline": "Decisive representation for high-stakes matters. Discreet, relentless, and respected across the table.",
+        "primary_cta": "Request a Consultation",
+        "secondary_cta": "Practice Areas"
+      },
+      "trust_stats": [
+        { "value": "$250M+", "label": "Recovered for Clients" },
+        { "value": "30+ yrs", "label": "Combined Experience" },
+        { "value": "98%", "label": "Favorable Outcomes" }
+      ],
+      "services": [
+        { "title": "Litigation & Trial", "desc": "Courtroom-tested advocacy for the matters that cannot afford to be lost." },
+        { "title": "Counsel & Strategy", "desc": "Proactive guidance that prevents disputes before they ever reach a filing." },
+        { "title": "Confidential Handling", "desc": "Discreet, conflict-checked representation that protects your reputation." },
+        { "title": "Transparent Engagement", "desc": "Clear scopes and fee structures agreed before any work begins." }
+      ],
+      "section_titles": { "services": "Practice Areas", "trust": "The Standard We Hold" },
+      "value_propositions": [
+        "Authority-first design that signals gravitas within the first 50ms.",
+        "Case-results architecture engineered to convert high-value inquiries.",
+        "Secure, conflict-aware intake built for confidential matters."
+      ],
+      "ownable_angle": "The firm that looks as formidable online as it is in the courtroom.",
+      "competitors": [
+        { "name": "Downtown Legal Partners", "weaknesses": ["cluttered practice-area menus", "no case results shown", "weak mobile experience"] },
+        { "name": "Boutique Counsel LLC", "weaknesses": ["dated serif-on-beige template", "no clear call to action", "thin trust signals"] },
+        { "name": "Volume Injury Firm", "weaknesses": ["aggressive low-trust branding", "stock imagery", "slow contact response"] }
+      ],
+      "pricing": {
+        "plan_name": "Firm Authority Plan",
+        "upfront": 6500,
+        "monthly": 850,
+        "deliverables": [
+          "Bespoke authority brand & landing system",
+          "Secure, conflict-aware consultation intake",
+          "Monthly performance, SEO & accessibility tuning",
+          "Quarterly competitor positioning audit",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    },
+
+    "home-services": {
+      "label": "Home Services & Custom Builders",
+      "voice_tone": "Confident, grounded, premium. Communicates craftsmanship and reliability.",
+      "fonts": {
+        "heading": "Archivo",
+        "body": "Inter",
+        "google_url": "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap"
+      },
+      "palette": {
+        "bg": "#0E0E0C",
+        "surface": "#1A1916",
+        "primary": "#3A3833",
+        "accent": "#E07A2D",
+        "text": "#F4EFE7",
+        "muted": "#B0A899",
+        "line": "rgba(224,122,45,0.18)"
+      },
+      "hero": {
+        "eyebrow": "Now Booking Premium Projects",
+        "headline": "{NAME}",
+        "subheadline": "Craftsmanship you can stand inside. Award-grade builds and remodels delivered on time, on budget, without the chaos.",
+        "primary_cta": "Request an Estimate",
+        "secondary_cta": "View Our Work"
+      },
+      "trust_stats": [
+        { "value": "500+", "label": "Projects Delivered" },
+        { "value": "100%", "label": "Licensed & Insured" },
+        { "value": "10 yr", "label": "Workmanship Warranty" }
+      ],
+      "services": [
+        { "title": "Custom Builds", "desc": "Ground-up homes and additions engineered to your life and your lot." },
+        { "title": "Premium Remodels", "desc": "Kitchens, baths and whole-home transformations with zero surprise costs." },
+        { "title": "Project Transparency", "desc": "Live schedules, milestone updates and a single point of contact throughout." },
+        { "title": "Warrantied Quality", "desc": "Licensed crews and a written workmanship warranty on every project." }
+      ],
+      "section_titles": { "services": "What We Build", "trust": "Why Homeowners Trust Us" },
+      "value_propositions": [
+        "Portfolio-first design that turns finished projects into booked estimates.",
+        "Trust-signal architecture (licensing, warranty, reviews) front and center.",
+        "Fast, mobile-first experience built for homeowners researching on the go."
+      ],
+      "ownable_angle": "The builder whose website is as polished as their finished work.",
+      "competitors": [
+        { "name": "Big-Box Remodelers", "weaknesses": ["impersonal national brand", "no real project photos", "long response times"] },
+        { "name": "Local Handyman Co.", "weaknesses": ["DIY-grade website", "no licensing shown", "no project gallery"] },
+        { "name": "Design-Build Competitor", "weaknesses": ["slow image-heavy site", "weak mobile layout", "buried estimate form"] }
+      ],
+      "pricing": {
+        "plan_name": "Builder Premium Plan",
+        "upfront": 5200,
+        "monthly": 550,
+        "deliverables": [
+          "Bespoke premium portfolio & landing system",
+          "Estimate-request lead capture integration",
+          "Monthly performance & image-optimization tuning",
+          "Quarterly competitor & lead-flow audit",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    },
+
+    "restaurant": {
+      "label": "Restaurant & Food Service",
+      "voice_tone": "Warm, bold, and appetite-driven. Communicates authentic flavors, cultural pride, and community roots.",
+      "fonts": {
+        "heading": "Oswald",
+        "body": "Open Sans",
+        "google_url": "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600&family=Oswald:wght@500;600;700&display=swap"
+      },
+      "palette": {
+        "bg": "#1A0D00",
+        "surface": "#2E1800",
+        "primary": "#8B2500",
+        "accent": "#FF6B35",
+        "text": "#FDF3E7",
+        "muted": "#D4A574",
+        "line": "rgba(255,107,53,0.20)"
+      },
+      "hero": {
+        "eyebrow": "Now Serving",
+        "headline": "{NAME}",
+        "subheadline": "Authentic flavors, made fresh. Every taco tells a story — come taste ours.",
+        "primary_cta": "Order Online",
+        "secondary_cta": "View Menu",
+        "image": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=2080&auto=format&fit=crop"
+      },
+      "trust_stats": [
+        { "value": "10k+", "label": "Happy Customers" },
+        { "value": "4.8★", "label": "Google Rating" },
+        { "value": "20+", "label": "Menu Items" }
+      ],
+      "services": [
+        { "title": "Authentic Tacos", "desc": "Al Pastor, Asada, Barbacoa, Lengua, Chorizo and more — crafted fresh with every order." },
+        { "title": "Alambres & Specialties", "desc": "Our signature Alambre con Camarón and Gorditas keep customers coming back every week." },
+        { "title": "Burritos & Quesadillas", "desc": "Stuffed generously with your choice of meat, cheese, and house-made salsas." },
+        { "title": "Catering & Events", "desc": "Bring the fiesta to your event — full-service catering for parties of any size." }
+      ],
+      "section_titles": { "services": "Our Menu", "trust": "Why Our Regulars Keep Coming Back" },
+      "value_propositions": [
+        "Mouth-watering food photography that makes customers order on the spot.",
+        "Mobile-first menu design built for hungry people on the go.",
+        "Seamless online ordering integration that turns visits into revenue."
+      ],
+      "ownable_angle": "The taqueria that tastes as authentic online as it does on the plate.",
+      "competitors": [
+        { "name": "Chain Mexican Restaurant", "weaknesses": ["generic Tex-Mex brand", "frozen ingredients", "no authentic identity"] },
+        { "name": "Fast Food Drive-Through", "weaknesses": ["no real menu photos", "no community connection", "no online ordering"] },
+        { "name": "Local Competitor", "weaknesses": ["outdated website", "no delivery option", "poor mobile experience"] }
+      ],
+      "pricing": {
+        "plan_name": "Restaurant Growth Plan",
+        "upfront": 3500,
+        "monthly": 400,
+        "deliverables": [
+          "Bespoke restaurant brand & menu system",
+          "Online ordering integration",
+          "Monthly menu updates & optimization",
+          "Quarterly competitor menu analysis",
+          "Continuous tech-stack & dependency upkeep"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "client": {
+    "url": "example.com",
+    "industry": "saas"
+  },
+  "colors": {
+    "primary": "#8B5CF6",
+    "accent": "#06B6D4",
+    "secondary": "#F43F5E",
+    "bg": "#06050B"
+  },
+  "competitor_matrix": [
+    {
+      "name": "Competitor A",
+      "website": "#",
+      "positioning": "Generic offering",
+      "strengths": [
+        "Established"
+      ],
+      "weaknesses": [
+        "Outdated design"
+      ],
+      "design_style": "minimal"
+    },
+    {
+      "name": "Competitor B",
+      "website": "#",
+      "positioning": "Budget option",
+      "strengths": [
+        "Low price"
+      ],
+      "weaknesses": [
+        "Poor UX"
+      ],
+      "design_style": "basic"
+    },
+    {
+      "name": "Competitor C",
+      "website": "#",
+      "positioning": "Premium tier",
+      "strengths": [
+        "Good branding"
+      ],
+      "weaknesses": [
+        "High cost"
+      ],
+      "design_style": "corporate"
+    }
+  ],
+  "design_signature": "Premium Brutalist",
+  "sections_layout": [
+    {
+      "componentId": "navbar",
+      "order": 0
+    },
+    {
+      "componentId": "hero",
+      "order": 1
+    },
+    {
+      "componentId": "features",
+      "order": 2
+    },
+    {
+      "componentId": "stats",
+      "order": 3
+    },
+    {
+      "componentId": "pricing",
+      "order": 4
+    },
+    {
+      "componentId": "footer",
+      "order": 5
+    }
+  ],
+  "ownable_angle": "Premium design excellence",
+  "delivery_artifacts": {
+    "b2b_pitch": "# B2B Pitch for example.com\n\n## Executive Summary\nWe recommend the \"Premium Brutalist\" design signature with the unique positioning: \"Premium design excellence\".\n\n## Brand Colors\n- Primary: #8B5CF6\n- Accent: #06B6D4\n- Secondary: #F43F5E\n\n## Next Steps\nContact us to begin implementation.\n"
+  }
+}
