@@ -8,7 +8,7 @@ class ResearchService {
   constructor() {
     this.apiKey = process.env.TAVILY_API_KEY;
     this.baseUrl = 'https://api.tavily.com';
-    
+
     if (!this.apiKey) {
       throw new Error('TAVILY_API_KEY not found in environment variables');
     }
@@ -100,6 +100,65 @@ class ResearchService {
   }
 
   /**
+   * Unified orchestrator - routes tasks based on input depth
+   * @param {string} queryOrUrl - Search query or URL
+   * @param {string} depth - Input depth: 'broad', 'specific', or 'deep'
+   * @param {Object} options - Additional options
+   * @returns {Promise<Object>} Orchestrated results
+   */
+  async orchestrate(queryOrUrl, depth = 'broad', options = {}) {
+    try {
+      console.log(`Tavily Orchestrator: depth=${depth}, input=${queryOrUrl}`);
+
+      switch (depth) {
+        case 'broad':
+          // Use search for broad discovery
+          return await this.search(queryOrUrl, {
+            search_depth: 'basic',
+            max_results: options.max_results || 10,
+            include_answer: true,
+          });
+
+        case 'specific':
+          // Use crawl/extract for specific business data
+          if (this._isUrl(queryOrUrl)) {
+            return await this.extract(queryOrUrl, {
+              extract_depth: 'advanced',
+            });
+          } else {
+            // If not a URL, use crawl with query
+            return await this.crawl(queryOrUrl, {
+              query: options.query || queryOrUrl,
+              max_depth: 1,
+              extract_depth: 'advanced',
+            });
+          }
+
+        case 'deep':
+          // Use research for deep competitor intelligence
+          return await this.research(queryOrUrl, {
+            search_depth: 'advanced',
+            max_results: options.max_results || 15,
+            include_raw_content: true,
+            days: options.days || 7,
+            max_tokens: options.max_tokens || 8000,
+          });
+
+        default:
+          throw new Error(
+            `Invalid depth parameter: ${depth}. Must be 'broad', 'specific', or 'deep'`,
+          );
+      }
+    } catch (error) {
+      console.error(`Tavily Orchestrator Error: ${error.message}`);
+      throw this._createError(
+        503,
+        `Tavily orchestration failed: ${error.message}`,
+      );
+    }
+  }
+
+  /**
    * Make HTTP request to Tavily API
    * @param {string} endpoint - API endpoint
    * @param {Object} body - Request body
@@ -119,14 +178,48 @@ class ResearchService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(`Tavily API error: ${data.message || response.statusText}`);
+        throw new Error(
+          `Tavily API error: ${data.message || response.statusText}`,
+        );
       }
 
       return data;
     } catch (error) {
       console.error(`Research Service Error: ${error.message}`);
-      throw error;
+      throw this._createError(
+        503,
+        `Tavily API request failed: ${error.message}`,
+      );
     }
+  }
+
+  /**
+   * Check if input is a URL
+   * @param {string} input - Input string
+   * @returns {boolean} Is URL
+   * @private
+   */
+  _isUrl(input) {
+    try {
+      new URL(input);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Create standardized error object
+   * @param {number} statusCode - HTTP status code
+   * @param {string} message - Error message
+   * @returns {Error} Formatted error
+   * @private
+   */
+  _createError(statusCode, message) {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    error.service = 'tavily_research';
+    return error;
   }
 
   /**

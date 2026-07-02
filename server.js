@@ -6,9 +6,19 @@ const cors = require('cors');
 const JSZip = require('jszip');
 require('dotenv').config();
 
+// Import new autonomous services
+const IntakeService = require('./src/services/intake_service');
+const FailoverService = require('./src/services/failover_service');
+const PipelineService = require('./src/services/pipeline_service');
+
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const ROOT = __dirname;
+
+// Initialize autonomous services
+const intakeService = new IntakeService();
+const failoverService = new FailoverService();
+const pipelineService = new PipelineService();
 
 app.use(cors());
 app.use(express.json());
@@ -47,7 +57,9 @@ function extractJson(stdout) {
     if (line.startsWith('{') && line.endsWith('}')) {
       try {
         return JSON.parse(line);
-      } catch (e) { /* continue */ }
+      } catch (e) {
+        /* continue */
+      }
     }
   }
   return null;
@@ -61,84 +73,131 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
   const { url, industry } = req.body;
 
   if (!url && stageId <= 3) {
-    return res.status(400).json({ error: 'URL is required for initial stages' });
+    return res
+      .status(400)
+      .json({ error: 'URL is required for initial stages' });
   }
 
   try {
     // Collect API keys from headers or body
     const apiKeys = {
-      FIRECRAWL_API_KEY: req.body.firecrawl_key || process.env.FIRECRAWL_API_KEY || '',
+      FIRECRAWL_API_KEY:
+        req.body.firecrawl_key || process.env.FIRECRAWL_API_KEY || '',
       GEMINI_API_KEY: req.body.gemini_key || process.env.GEMINI_API_KEY || '',
-      GITHUB_TOKEN: req.body.github_token || process.env.GITHUB_TOKEN || ''
+      GITHUB_TOKEN: req.body.github_token || process.env.GITHUB_TOKEN || '',
     };
 
     const env = { ...process.env, ...apiKeys };
 
     switch (stageId) {
-      case 1: { // Brand Extraction
+      case 1: {
+        // Brand Extraction
         console.log(`[*] Stage 1: Extraction for ${url}`);
-        const { stdout } = await runScript('python3', ['scripts/extract_brand.py', url], env);
+        const { stdout } = await runScript(
+          'python3',
+          ['scripts/extract_brand.py', url],
+          env,
+        );
         const data = extractJson(stdout);
-        if (!data) throw new Error('Failed to extract brand data from script output.');
+        if (!data)
+          throw new Error('Failed to extract brand data from script output.');
         return res.json({ success: true, data: data, logs: stdout });
       }
 
-      case 2: { // Competitor Analysis
+      case 2: {
+        // Competitor Analysis
         console.log(`[*] Stage 2: Competitor Analysis for ${url}`);
-        const { stdout } = await runScript('node', ['scripts/analyze_competitors.js', url, industry || 'default'], env);
+        const { stdout } = await runScript(
+          'node',
+          ['scripts/analyze_competitors.js', url, industry || 'default'],
+          env,
+        );
         const data = extractJson(stdout);
-        if (!data) throw new Error('Failed to extract competitor analysis from script output.');
+        if (!data)
+          throw new Error(
+            'Failed to extract competitor analysis from script output.',
+          );
         return res.json({ success: true, data: data, logs: stdout });
       }
 
-      case 3: { // Site Generation
+      case 3: {
+        // Site Generation
         console.log(`[*] Stage 3: Site Generation for ${url}`);
         const brandPath = path.join(ROOT, 'brand_colors.json');
-        if (!fs.existsSync(brandPath)) throw new Error('Brand data missing. Run Stage 1 first.');
+        if (!fs.existsSync(brandPath))
+          throw new Error('Brand data missing. Run Stage 1 first.');
 
         const brandData = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
-        const businessName = brandData.brand_entities?.name || brandData.niche_label || 'Your Business';
-        const domain = (url || '').replace(/^https?:\/\//, '').split('/')[0] || 'domain.com';
+        const businessName =
+          brandData.brand_entities?.name ||
+          brandData.niche_label ||
+          'Your Business';
+        const domain =
+          (url || '').replace(/^https?:\/\//, '').split('/')[0] || 'domain.com';
         const genEnv = {
           ...process.env,
           ...apiKeys,
           BUSINESS_NAME: businessName,
           USP: brandData.brand_entities?.usp || '',
-          CONTACT_EMAIL: req.body.contact_email || ('hello@' + domain),
-          FORMSPREE_HASH: req.body.formspree_hash || ''
+          CONTACT_EMAIL: req.body.contact_email || 'hello@' + domain,
+          FORMSPREE_HASH: req.body.formspree_hash || '',
         };
 
         // generate.js ships the self-contained production stylesheet itself.
-        const { stdout: genStdout } = await runScript('node', ['scripts/generate.js'], genEnv);
+        const { stdout: genStdout } = await runScript(
+          'node',
+          ['scripts/generate.js'],
+          genEnv,
+        );
 
-        return res.json({ success: true, previewUrl: '/dist/index.html', logs: genStdout });
+        return res.json({
+          success: true,
+          previewUrl: '/dist/index.html',
+          logs: genStdout,
+        });
       }
 
-      case 4: { // Visual Polish
+      case 4: {
+        // Visual Polish
         console.log(`[*] Stage 4: Visual Polish`);
         const { stdout } = await runScript('node', ['scripts/polish.js'], env);
         const data = extractJson(stdout);
         // Polish outputs a log, not JSON — treat missing JSON as OK
-        return res.json({ success: true, data: data || { status: 'polished' }, logs: stdout });
+        return res.json({
+          success: true,
+          data: data || { status: 'polished' },
+          logs: stdout,
+        });
       }
 
-      case 5: { // Self-Fixing Critique
+      case 5: {
+        // Self-Fixing Critique
         console.log(`[*] Stage 5: Critique`);
-        const { stdout } = await runScript('node', ['scripts/critique.js'], env);
+        const { stdout } = await runScript(
+          'node',
+          ['scripts/critique.js'],
+          env,
+        );
         const data = extractJson(stdout);
         // Critique outputs a log, not JSON — treat missing JSON as OK
-        return res.json({ success: true, data: data || { status: 'critique_passed' }, logs: stdout });
+        return res.json({
+          success: true,
+          data: data || { status: 'critique_passed' },
+          logs: stdout,
+        });
       }
 
-      case 6: { // Final Validation & Delivery Bundle
+      case 6: {
+        // Final Validation & Delivery Bundle
         console.log(`[*] Stage 6: Packaging Delivery Bundle`);
         const zip = new JSZip();
         const distPath = path.join(ROOT, 'dist');
 
-        if (!fs.existsSync(distPath)) throw new Error('Build artifacts missing. Run Stage 3 first.');
+        if (!fs.existsSync(distPath))
+          throw new Error('Build artifacts missing. Run Stage 3 first.');
 
         const files = fs.readdirSync(distPath);
-        files.forEach(file => {
+        files.forEach((file) => {
           const content = fs.readFileSync(path.join(distPath, file));
           zip.file(file, content);
         });
@@ -150,19 +209,22 @@ app.post('/api/pipeline/stage/:id', async (req, res) => {
         return res.json({
           success: true,
           bundleUrl: '/api/download/bundle',
-          message: 'Delivery bundle generated successfully.'
+          message: 'Delivery bundle generated successfully.',
         });
       }
 
       default:
-        return res.json({ success: true, message: `Stage ${stageId} completed (logic-only).` });
+        return res.json({
+          success: true,
+          message: `Stage ${stageId} completed (logic-only).`,
+        });
     }
   } catch (error) {
     console.error(`[Stage ${stageId} Error]`, error.stderr || error.message);
     res.status(500).json({
       error: `Stage ${stageId} failed`,
       details: error.stderr || error.message,
-      logs: error.stdout || ''
+      logs: error.stdout || '',
     });
   }
 });
@@ -184,11 +246,158 @@ app.get('/api/health', (req, res) => {
     scripts: {
       extract: fs.existsSync(path.join(ROOT, 'scripts/extract_brand.py')),
       generate: fs.existsSync(path.join(ROOT, 'scripts/generate.js')),
-      analyze: fs.existsSync(path.join(ROOT, 'scripts/analyze_competitors.js'))
-    }
+      analyze: fs.existsSync(path.join(ROOT, 'scripts/analyze_competitors.js')),
+    },
+    services: {
+      intake: !!intakeService,
+      failover: !!failoverService,
+      pipeline: !!pipelineService,
+    },
   });
 });
 
+/**
+ * Autonomous Intake Endpoint
+ * Accepts URL and business description, uses Gemini to analyze business "Soul"
+ * and map to niche, then feeds into main pipeline
+ */
+app.post('/api/autonomous/intake', async (req, res) => {
+  try {
+    const { url, businessDescription, options } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    if (!businessDescription) {
+      return res
+        .status(400)
+        .json({ error: 'Business description is required' });
+    }
+
+    console.log(`[Autonomous Intake] Processing: ${url}`);
+    const result = await intakeService.processIntake(
+      url,
+      businessDescription,
+      options,
+    );
+
+    res.json({
+      success: true,
+      data: result.data,
+      metadata: result.metadata,
+    });
+  } catch (error) {
+    console.error('[Autonomous Intake Error]', error.message);
+    const statusCode = error.statusCode || 503;
+    res.status(statusCode).json({
+      error: 'Autonomous intake failed',
+      details: error.message,
+      service: error.service,
+    });
+  }
+});
+
+/**
+ * Failover Extraction Endpoint
+ * Implements Tavily → Jina → Firecrawl failover chain
+ */
+app.post('/api/failover/extract', async (req, res) => {
+  try {
+    const { url, options } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    console.log(`[Failover Extract] Processing: ${url}`);
+    const result = await failoverService.extractWithFailover(url, options);
+
+    res.json({
+      success: true,
+      data: result.data,
+      metadata: result.metadata,
+    });
+  } catch (error) {
+    console.error('[Failover Extract Error]', error.message);
+    const statusCode = error.statusCode || 503;
+    res.status(statusCode).json({
+      error: 'Failover extraction failed',
+      details: error.message,
+      service: error.service,
+    });
+  }
+});
+
+/**
+ * Autonomous Pipeline Endpoint
+ * Executes complete Intake → Research → Web3Forms flow
+ */
+app.post('/api/autonomous/pipeline', async (req, res) => {
+  try {
+    const { url, businessDescription, submitter, options } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    if (!businessDescription) {
+      return res
+        .status(400)
+        .json({ error: 'Business description is required' });
+    }
+
+    console.log(`[Autonomous Pipeline] Executing for: ${url}`);
+    const result = await pipelineService.executePipeline(
+      url,
+      businessDescription,
+      submitter,
+      options,
+    );
+
+    res.json({
+      success: true,
+      data: result.data,
+      metadata: result.metadata,
+    });
+  } catch (error) {
+    console.error('[Autonomous Pipeline Error]', error.message);
+    const statusCode = error.statusCode || 503;
+    res.status(statusCode).json({
+      error: 'Autonomous pipeline failed',
+      details: error.message,
+      service: error.service,
+    });
+  }
+});
+
+/**
+ * Service Configuration Validation
+ */
+app.get('/api/services/validate', async (req, res) => {
+  try {
+    const intakeValid = await intakeService.validateConfiguration();
+    const failoverValid = await failoverService.validateConfiguration();
+    const pipelineValid = await pipelineService.validatePipelineConfiguration();
+
+    res.json({
+      success: true,
+      services: {
+        intake: intakeValid,
+        failover: failoverValid,
+        pipeline: pipelineValid,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[Service Validation Error]', error.message);
+    res.status(503).json({
+      error: 'Service validation failed',
+      details: error.message,
+    });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`[🚀] Autonomous Web Designer Engine Backend live at http://localhost:${PORT}`);
+  console.log(
+    `[🚀] Autonomous Web Designer Engine Backend live at http://localhost:${PORT}`,
+  );
 });

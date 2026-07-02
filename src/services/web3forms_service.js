@@ -8,9 +8,11 @@ class Web3FormsService {
   constructor() {
     this.accessKey = process.env.WEB3FORMS_ACCESS_KEY;
     this.endpoint = 'https://api.web3forms.com/submit';
-    
+
     if (!this.accessKey) {
-      throw new Error('WEB3FORMS_ACCESS_KEY not found in environment variables');
+      throw new Error(
+        'WEB3FORMS_ACCESS_KEY not found in environment variables',
+      );
     }
   }
 
@@ -70,7 +72,9 @@ class Web3FormsService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(`Web3Forms API error: ${data.message || response.statusText}`);
+        throw new Error(
+          `Web3Forms API error: ${data.message || response.statusText}`,
+        );
       }
 
       return {
@@ -83,13 +87,19 @@ class Web3FormsService {
       };
     } catch (error) {
       console.error(`Web3Forms Service Error: ${error.message}`);
-      
+
       // Check for rate limit or API errors
-      if (error.message.includes('rate limit') || error.message.includes('429')) {
+      if (
+        error.message.includes('rate limit') ||
+        error.message.includes('429')
+      ) {
         throw new Error(`Rate limit exceeded: ${error.message}`);
       }
-      
-      if (error.message.includes('API error') || error.message.includes('401')) {
+
+      if (
+        error.message.includes('API error') ||
+        error.message.includes('401')
+      ) {
         throw new Error(`API authentication failed: ${error.message}`);
       }
 
@@ -107,10 +117,11 @@ class Web3FormsService {
     try {
       // Format analysis for submission
       const message = this._formatAnalysisMessage(analysis);
-      
+
       const formData = {
         name: submitter.name || 'Webify User',
-        email: submitter.email || process.env.DEFAULT_EMAIL || 'user@example.com',
+        email:
+          submitter.email || process.env.DEFAULT_EMAIL || 'user@example.com',
         message,
       };
 
@@ -139,26 +150,26 @@ class Web3FormsService {
    */
   _formatAnalysisMessage(analysis) {
     const { source, extraction, research, summary } = analysis.data;
-    
+
     let message = `Webify Consultant AI Analysis\n`;
     message += `============================\n\n`;
     message += `Source: ${source.url}\n`;
     message += `Predicament: ${source.predicament}\n\n`;
-    
+
     if (extraction.title) {
       message += `Page Title: ${extraction.title}\n\n`;
     }
-    
+
     if (summary) {
       message += `Summary:\n${summary}\n\n`;
     }
-    
+
     if (research.answer) {
       message += `Research Findings:\n${research.answer}\n\n`;
     }
-    
+
     message += `Generated at: ${analysis.metadata?.processedAt || new Date().toISOString()}\n`;
-    
+
     return message;
   }
 
@@ -187,7 +198,10 @@ class Web3FormsService {
 
       return response.ok;
     } catch (error) {
-      console.error('Web3Forms configuration validation failed:', error.message);
+      console.error(
+        'Web3Forms configuration validation failed:',
+        error.message,
+      );
       return false;
     }
   }

@@ -14,83 +14,120 @@ class PipelineService {
   /**
    * Execute complete pipeline: Intake → Research → Web3Forms
    * @param {string} url - Target URL to analyze
-   * @param {string} predicament - User's business predicament
+   * @param {string} businessDescription - User's business description
    * @param {Object} submitter - Submitter information for Web3Forms
    * @param {Object} options - Pipeline options
    * @returns {Promise<Object>} Complete pipeline results
    */
-  async executePipeline(url, predicament, submitter, options = {}) {
+  async executePipeline(url, businessDescription, submitter, options = {}) {
     const pipelineId = this._generatePipelineId();
+    const startTime = Date.now();
     console.log(`Starting pipeline ${pipelineId} for URL: ${url}`);
 
     try {
-      // Step 1: Process intake (URL + predicament)
-      console.log(`[${pipelineId}] Step 1: Processing intake...`);
-      const intakeResults = await this.intakeService.processIntake(url, predicament, {
-        extract_depth: options.extract_depth || 'advanced',
-        search_depth: options.search_depth || 'advanced',
-        max_results: options.max_results || 10,
-        days: options.days || 7,
-      });
+      // Step 1: Process intake (URL + business description) with Gemini niche mapping
+      console.log(
+        `[${pipelineId}] Step 1: Processing intake with Gemini analysis...`,
+      );
+      const intakeResults = await this.intakeService.processIntake(
+        url,
+        businessDescription,
+        {
+          extract_depth: options.extract_depth || 'advanced',
+          search_depth: options.search_depth || 'advanced',
+          max_results: options.max_results || 10,
+          days: options.days || 7,
+        },
+      );
 
       if (!intakeResults.success) {
-        throw new Error('Intake processing failed');
+        throw this._createError(503, 'Intake processing failed');
       }
 
-      console.log(`[${pipelineId}] Step 1 completed: Extracted ${intakeResults.metadata.extractResultsCount} items, researched ${intakeResults.metadata.researchResultsCount} items`);
+      console.log(
+        `[${pipelineId}] Step 1 completed: Niche=${intakeResults.metadata.niche}, Extracted ${intakeResults.metadata.extractResultsCount} items, researched ${intakeResults.metadata.researchResultsCount} items`,
+      );
 
-      // Step 2: Submit analysis to Web3Forms (if submitter info provided)
+      // Step 2: Submit Consultant AI analysis to Web3Forms (if submitter info provided)
+      // This is the Consultant AI module acting as a child of the main pipeline
       let web3FormsResults = null;
       if (submitter && options.submitToWeb3Forms !== false) {
-        console.log(`[${pipelineId}] Step 2: Submitting to Web3Forms...`);
+        console.log(
+          `[${pipelineId}] Step 2: Submitting Consultant AI analysis to Web3Forms...`,
+        );
         web3FormsResults = await this.web3FormsService.submitConsultantAnalysis(
           intakeResults,
-          submitter
+          submitter,
         );
 
         if (!web3FormsResults.success) {
-          console.warn(`[${pipelineId}] Web3Forms submission failed, but pipeline continues`);
+          console.warn(
+            `[${pipelineId}] Web3Forms submission failed, but pipeline continues`,
+          );
         } else {
-          console.log(`[${pipelineId}] Step 2 completed: Form submitted successfully`);
+          console.log(
+            `[${pipelineId}] Step 2 completed: Consultant AI form submitted successfully`,
+          );
         }
       }
 
       // Step 3: Return complete pipeline results
+      const duration = Date.now() - startTime;
       const pipelineResults = {
         success: true,
         pipelineId,
         data: {
           intake: intakeResults,
-          web3Forms: web3FormsResults,
+          consultantAI: web3FormsResults, // Consultant AI as child module
         },
         metadata: {
           url,
-          predicament,
-          submitter: submitter ? {
-            name: submitter.name,
-            email: submitter.email,
-          } : null,
+          businessDescription,
+          niche: intakeResults.metadata.niche,
+          nicheConfidence: intakeResults.metadata.nicheConfidence,
+          submitter: submitter
+            ? {
+                name: submitter.name,
+                email: submitter.email,
+              }
+            : null,
           executedAt: new Date().toISOString(),
-          duration: this._calculateDuration(pipelineId),
+          duration: `${duration}ms`,
         },
       };
 
-      console.log(`[${pipelineId}] Pipeline completed successfully`);
+      console.log(
+        `[${pipelineId}] Pipeline completed successfully in ${duration}ms`,
+      );
       return pipelineResults;
-
     } catch (error) {
       console.error(`[${pipelineId}] Pipeline failed: ${error.message}`);
-      
+
       // Check for rate limit or API errors
-      if (error.message.includes('rate limit') || error.message.includes('429')) {
-        throw new Error(`Pipeline halted - Rate limit exceeded: ${error.message}`);
-      }
-      
-      if (error.message.includes('API error') || error.message.includes('401')) {
-        throw new Error(`Pipeline halted - API authentication failed: ${error.message}`);
+      if (
+        error.message.includes('rate limit') ||
+        error.message.includes('429')
+      ) {
+        throw this._createError(
+          503,
+          `Pipeline halted - Rate limit exceeded: ${error.message}`,
+        );
       }
 
-      throw new Error(`Pipeline execution failed: ${error.message}`);
+      if (
+        error.message.includes('API error') ||
+        error.message.includes('401')
+      ) {
+        throw this._createError(
+          503,
+          `Pipeline halted - API authentication failed: ${error.message}`,
+        );
+      }
+
+      throw this._createError(
+        503,
+        `Pipeline execution failed: ${error.message}`,
+      );
     }
   }
 
@@ -114,8 +151,10 @@ class PipelineService {
         if (attempt === maxRetries) {
           throw error; // Final attempt failed
         }
-        
-        console.warn(`Attempt ${attempt} failed, retrying in ${retryDelay}ms...`);
+
+        console.warn(
+          `Attempt ${attempt} failed, retrying in ${retryDelay}ms...`,
+        );
         await this._sleep(retryDelay);
       }
     }
@@ -128,7 +167,8 @@ class PipelineService {
   async validatePipelineConfiguration() {
     try {
       const intakeValid = await this.intakeService.validateConfiguration();
-      const web3FormsValid = await this.web3FormsService.validateConfiguration();
+      const web3FormsValid =
+        await this.web3FormsService.validateConfiguration();
 
       return {
         success: intakeValid && web3FormsValid,
@@ -159,11 +199,10 @@ class PipelineService {
 
   /**
    * Calculate pipeline duration
-   * @param {string} pipelineId - Pipeline ID
    * @returns {string} Duration string
    * @private
    */
-  _calculateDuration(pipelineId) {
+  _calculateDuration() {
     // Simplified duration calculation
     // In production, track start time and calculate actual duration
     return '< 1s';
@@ -176,7 +215,21 @@ class PipelineService {
    * @private
    */
   _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Create standardized error object
+   * @param {number} statusCode - HTTP status code
+   * @param {string} message - Error message
+   * @returns {Error} Formatted error
+   * @private
+   */
+  _createError(statusCode, message) {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    error.service = 'pipeline_service';
+    return error;
   }
 }
 
